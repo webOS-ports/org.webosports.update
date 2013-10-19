@@ -17,31 +17,12 @@
 		<script src="source/package.js" type="text/javascript"></script>
 	</head>
 	<body class="enyo-unselectable">
-		<script>
-			function log(msg) {
-				console.error(msg);
+		<script>	
+			var app = new UpdateApp().renderInto(document.body), params = webos.launchParams();
+			if (params.success && params.needUpdate) {
+				app.setUpdateResults();
 			}
-			
-			var params = webos.launchParams() || {};
-			log("Params: " + JSON.stringify(params));
-			if (params.success) {
-				log("Was called from update service. Won't launch app.");
-				if (this.appIsRunning) {
-					log("App already running. Don't need to do anything.");	
-				} else if (this.notificationShowing) {
-					log("Notification already showing. Don't need to do anything.");	
-				} else if (!params.needUpdate) {
-					log("No update necessary. Won't do anything.");	
-				} else {
-					log("Trying to show notification.");
-					//FIXME: This is not working right now... no clue what I am missing.
-					enyo.create({kind:"UpdateNotification", updateResults: params}).renderInto(document.body);
-					this.notificationShowing = true;
-				}
-			} else {
-				new UpdateApp().renderInto(document.body);
-				this.appIsRunning = true;
-			}
+			this.appIsRunning = true;
 		</script>
 	</body>
 </html>

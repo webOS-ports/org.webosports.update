@@ -3,9 +3,9 @@
 	"version": "0.0.1",
 	"vendor": "WebOS Ports - Achim Königs",
 	"type": "web",
-	"main": "debug.html",
+	"main": "launcher.html",
 	"title": "System Update",
 	"icon": "icon.png",
 	"uiRevision":2,
-	"noWindow": false
+	"noWindow": true
 }
