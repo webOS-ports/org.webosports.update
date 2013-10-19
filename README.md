@@ -9,8 +9,9 @@ Todos:
 - parse opkg output and deliver status to UI
 - make UI pretty
 - at least get spinner to center (AHRG!!)
-- get notifications working
-- get noWindow: true working, too
+
+Known issue:
+- App won't launch from launcher if notification icon is present.
 
 Frameworks used:
 Enyo.js Bootplate 2.2
