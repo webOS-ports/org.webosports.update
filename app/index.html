@@ -22,7 +22,9 @@
 				alert('No application build found, redirecting to debug.html.');
 				location = 'debug.html';
 			}
-			new UpdateApp().renderInto(document.body);
+			var app = new UpdateApp().renderInto(document.body);
+			app.setUpdateResults(webos.launchParams());
+			this.appIsRunning = true;
 		</script>
 	</body>
 </html>
