@@ -60,7 +60,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 					});
 				
 					newResult = { returnValue: true, success: true, needUpdate: true,
-									manifest: manifest, changesSinceLast: changesSinceLast };
+									changesSinceLast: changesSinceLast };
 				
 					//notify user that we have an update:
 					PalmCall.call("palm://com.palm.applicationManager", "launch", {
