@@ -55,7 +55,7 @@ enyo.kind({
 		{kind:"ApplicationEvents", onUnload:"destroy"}
 	],
 	
-	indexPath: "/usr/palm/frameworks/enyo/1.0/framework/source/palm/system/dashboard-window/dashboard.html",
+	indexPath: "/usr/palm/frameworks/enyo/1.0/framework/build/palm/system/dashboard-window/dashboard.html",
 	//* @protected
 	create: function() {
 		this.inherited(arguments);
