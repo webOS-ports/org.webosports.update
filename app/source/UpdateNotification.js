@@ -8,19 +8,35 @@ enyo.kind({
 	},
 	components: [
 		{
+			name: "dashboard",
 			kind: "enyo.Dashboard",
-			layers: [
-				{ icon: "icon.png", title: "Update available.", text: "Update available." }
-			],
 			smallIcon: "icon.png",
 			onTap: "notificationTap"
 		}
 	],
 	
+	create: function () {
+		this.inherited(arguments);
+		console.error("Notification created!!");
+		
+		this.$.dashboard.push({
+			title: "System Update available.",
+			text: "Tap to open system update app.",
+			icon: "icon.png"
+		});
+	},
+	
 	notificationTap: function (inSender) {
-		var updateApp = new UpdateApp();
-		updateApp.renderInto(document.body);
-		updateApp.setUpdateResults(this.updateResults);
-		//enyo.windows.activate
+		console.error("Notification tapped!!!");
+		
+		if (this.updateResults) {
+			this.updateResults.openApp = true;
+		} else {
+			this.updateResults = {
+				openApp: true
+			};
+		}
+			
+		enyo.windows.activate("debug.html", "UpdateAppMain", this.updateResults);
 	}
 });
