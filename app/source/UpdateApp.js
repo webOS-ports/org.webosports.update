@@ -80,8 +80,26 @@ enyo.kind({
 				ontap: "doInstall",
 				showing: false
 			}
-		]}
+		]},
+		
+		//application events:
+		{
+			kind: enyo.ApplicationEvents,
+			onWindowParamsChange: "windowParamsChangeHandler",
+			onApplicationRelaunch: "relaunched"
+		}
 	],
+	
+	//application event callbacks:
+	windowParamsChangeHandler: function () {
+		console.error("New params: " + JSON.stringify(enyo.windowParams));
+		this.setUpdateResults(enyo.windowParams);
+	},
+	
+	relaunched: function () {
+		console.error("Relaunched!");
+		enyo.windows.activate("debug.html", "UpdateAppMain");
+	},
 	
 	//button callbacks:
 	doCheck: function (inSender, inEvent) {
