@@ -15,7 +15,7 @@ var Utils = (function () {
 					//future.result = { returnValue: false, message: err.message };
 					log("Error while reading version file ( " + Config.versionFile + " ): " + JSON.stringify(err));
 				} else {
-					log("Got data from file: " + JSON.stringify(data));
+					log("Got data from file: " + data.toString());
 					future.result = { returnValue: true, version: parseInt(data.toString(), 10) };
 				}
 			});
