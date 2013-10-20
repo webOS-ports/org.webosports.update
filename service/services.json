@@ -1,0 +1,31 @@
+{
+	"id":				"org.webosports.update.service",
+	"description":		"Checks for updates, triggers user notification, download and reboot into update state",
+	"engine":			"node",
+	"activityTimeout":	"30",
+	"services":	[
+		{
+			"name":			"org.webosports.update.service",
+			"description":	"Checks for updates, triggers user notification, download and reboot into update state",
+			"golbalized":	false,
+			"commands":	[
+				{
+					"name":			"checkUpdate",
+					"assistant":	"CheckUpdateAssistant",
+					"public":		true
+				},
+				{
+					"name":			"downloadUpdate",
+					"assistant":	"DownloadUpdateAssistant",
+					"subscribe": 	true,
+					"public":		true
+				},
+				{
+					"name":			"initiateUpdate",
+					"assistant":	"InitiateUpdateAssistant",
+					"public":		true
+				}
+			]
+		}
+	]
+}
