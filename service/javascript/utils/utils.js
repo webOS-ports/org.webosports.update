@@ -15,8 +15,24 @@ var Utils = (function () {
 					//future.result = { returnValue: false, message: err.message };
 					log("Error while reading version file ( " + Config.versionFile + " ): " + JSON.stringify(err));
 				} else {
-					log("Got data from file: " + data.toString());
-					future.result = { returnValue: true, version: parseInt(data.toString(), 10) };
+					var version, dataStr = data.toString(), matches;
+					log("Got data from file: " + dataStr);
+					
+					matches = Config.parseWholeStringRegExp.exec(dataStr);
+					//log("parseWholeStringRegExp: " + JSON.stringify(matches));
+					version = matches && parseInt(matches[Config.parseWholeStringIndex], 10);
+
+					if (!version && version !== 0) {
+						log("WARNING: Using parsing callback. Better adjust parseWholeStringRegExp.");
+						matches = Config.parseOnlyPlattformVersionRegExp.exec(dataStr);
+						version = matches && parseInt(matches[1], 10); //first match is always the complete string.
+					}
+					
+					if (!version && version !== 0) {
+						future.exception = { message: "Could not parse version from file: " + dataStr, errorCode: -1};
+					} else {
+						future.result = { returnValue: true, version: version };
+					}
 				}
 			});
 			

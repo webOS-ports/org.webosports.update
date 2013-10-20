@@ -45,7 +45,12 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 			if (result && result.returnValue === true) {
 				manifest = result.manifest;
 				remoteVersion = manifest.platformVersion;
-			
+				
+				if (!remoteVersion) {
+					handleError("Could not parse remote version from manifest", {message: JSON.stringify(manifest)});
+					return;
+				}
+					
 				if (remoteVersion === localVersion) {
 					outerFuture.result = { returnValue: true, success: true,  needUpdate: false};
 				} else {
