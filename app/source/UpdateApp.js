@@ -200,8 +200,8 @@ enyo.kind({
 			} else {
 				this.updateStatus("Your system is up to date.");
 			}
-		} else {
-			this.updateStatus("Could not check for updates: " + result.message);
+		} else if (result && (result.success === false || result.returnValue === false)) {
+			this.updateStatus("Could not check for updates: " + (result.message || result.errorText || "no error speficied."));
 		}
 	}
 });
