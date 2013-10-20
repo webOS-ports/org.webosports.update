@@ -1,0 +1,1 @@
+{"role": {"allowedNames": ["org.webosports.update.service"], "type": "regular", "exeName": "js"}, "permissions": [{"inbound": ["*"], "outbound": ["*"], "service": "org.webosports.update.service"}]}
