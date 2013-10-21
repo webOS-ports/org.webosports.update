@@ -1,5 +1,5 @@
 {
-	"id": "org.webosports.update",
+	"id": "org.webosports.app.update",
 	"version": "0.1.0",
 	"vendor": "WebOS Ports - Achim Königs",
 	"type": "web",
