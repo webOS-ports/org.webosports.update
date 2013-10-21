@@ -69,7 +69,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 				
 					//notify user that we have an update:
 					PalmCall.call("palm://com.palm.applicationManager", "launch", {
-						id: "org.webosports.update",
+						id: "org.webosports.app.update",
 						params: newResult
 					});
 					
