@@ -186,6 +186,8 @@ process.chdir(sourceDir);
 
 shell.mkdir('-p', path.join(outDir, 'lib'));
 shell.cp(path.join(sourceDir, 'index.html'), path.join(sourceDir, 'icon.png'), outDir);
+shell.cp(path.join(sourceDir, 'launcher.html'), outDir);
+shell.cp(path.join(sourceDir, 'appinfo.json'), outDir);
 shell.cp('-r', buildDir, outDir);
 
 var assetsSrcDir = path.join(sourceDir, 'assets');
