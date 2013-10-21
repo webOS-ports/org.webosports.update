@@ -1,4 +1,5 @@
 ﻿enyo.depends(
+	"system.js",
 	"windows",
 	"ApplicationEvents.js",
 	
@@ -7,6 +8,5 @@
 	"FilePicker.js",
 	"keyboard.js",
 	
-	"system.js",
 	"setuplogging.js"
 );
