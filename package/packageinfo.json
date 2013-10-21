@@ -1,5 +1,5 @@
 {
-  "id": "org.webosports.update",
+  "id": "org.webosports.app.update",
   "package_format_version": 2,
   "loc_name": "System Update",
   "version": "0.0.1",
