@@ -37,6 +37,6 @@ enyo.kind({
 			};
 		}
 			
-		enyo.windows.activate("debug.html", "UpdateAppMain", this.updateResults);
+		enyo.windows.activate("index.html", "UpdateAppMain", this.updateResults);
 	}
 });
