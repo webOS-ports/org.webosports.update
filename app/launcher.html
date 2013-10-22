@@ -14,7 +14,7 @@
 		<link href="build/enyo.css" rel="stylesheet"/>
 		<link href="build/app.css" rel="stylesheet"/>
 		<!-- js -->
-		<script src="/usr/palm/frameworks/cordova/cordova.js"></script>
+		<!--script src="/usr/palm/frameworks/cordova/cordova.js"></script-->
 		<script src="build/enyo.js"></script>
 		<script src="build/app.js"></script>
 		
@@ -60,6 +60,10 @@
 			
 			console.error("launching!");
 			launch();
+			
+			if (window.PalmSystem) {
+				PalmSystem.stageReady();
+			}
 		</script>
 	</body>
 </html>
