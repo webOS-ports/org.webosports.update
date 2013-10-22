@@ -71,6 +71,8 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 					PalmCall.call("palm://com.palm.applicationManager", "launch", {
 						id: "org.webosports.app.update",
 						params: newResult
+					}).then(function appManagerCallback(f) {
+						log("ApplicationManager call came back: " + JSON.stringify(f.result));
 					});
 					
 					outerFuture.result = newResult;
