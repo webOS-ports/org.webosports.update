@@ -1,10 +1,10 @@
 {
 	"activity": {
-		"name": "org.webosports.update: Periodic Update Check",
+		"name": "org.webosports.service.update: Periodic Update Check",
 		"description": "Periodic system update check",
 		"callback": {
-			"method": "palm://org.webosports.update//checkUpdate",
-			"params": {} 
+			"method": "palm://org.webosports.service.update/checkUpdate",
+			"params": {}
 		},
 		"requirements" : {
 			"internet" : true

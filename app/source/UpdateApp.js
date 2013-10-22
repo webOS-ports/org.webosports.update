@@ -14,7 +14,7 @@ enyo.kind({
 		{
 			name: "updateService",
 			kind: "enyo.PalmService",
-			service: "palm://org.webosports.update.service",
+			service: "palm://org.webosports.service.update",
 			method: "checkUpdate",
 			subscribe: false,
 			onComplete: "updateChecked"
@@ -22,7 +22,7 @@ enyo.kind({
 		{
 			name: "downloadService",
 			kind: "enyo.PalmService",
-			service: "palm://org.webosports.update.service",
+			service: "palm://org.webosports.service.update",
 			method: "downloadUpdate",
 			subscribe: true,
 			//resubscribe: true, //not sure what that really means.
@@ -31,7 +31,7 @@ enyo.kind({
 		{
 			name: "initiateService",
 			kind: "enyo.PalmService",
-			service: "palm://org.webosports.update.service",
+			service: "palm://org.webosports.service.update",
 			method: "initiateUpdate",
 			subscribe: false,
 			onComplete: "initiateUpdateComplete"
