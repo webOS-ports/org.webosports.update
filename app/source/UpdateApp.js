@@ -50,6 +50,7 @@ enyo.kind({
 		{
 			kind: "enyo.Scroller",
 			fit: true,
+			touch: true,
 			components: [
 				{name: "spinner", kind: "onyx.Spinner", showing: false, classes: "center"},
 				{name: "changesDisplay", classes: "nice-padding", allowHtml: true}
