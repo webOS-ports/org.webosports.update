@@ -1,11 +1,11 @@
 {
-	"id":				"org.webosports.update.service",
+	"id":				"org.webosports.service.update",
 	"description":		"Checks for updates, triggers user notification, download and reboot into update state",
 	"engine":			"node",
 	"activityTimeout":	"30",
 	"services":	[
 		{
-			"name":			"org.webosports.update.service",
+			"name":			"org.webosports.service.update",
 			"description":	"Checks for updates, triggers user notification, download and reboot into update state",
 			"golbalized":	false,
 			"commands":	[

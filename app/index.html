@@ -12,7 +12,7 @@
 		<link href="build/enyo.css" rel="stylesheet"/>
 		<link href="build/app.css" rel="stylesheet"/>
 		<!-- js -->
-		<script src="cordova.js"></script>
+		<!--script src="/usr/palm/frameworks/cordova/cordova.js"></script-->
 		<script src="build/enyo.js"></script>
 		<script src="build/app.js"></script>
 	</head>
@@ -22,8 +22,10 @@
 				alert('No application build found, redirecting to debug.html.');
 				location = 'debug.html';
 			}
-			var app = new UpdateApp().renderInto(document.body);
-			app.setUpdateResults(webos.launchParams());
+			var app = new UpdateApp().renderInto(document.body), params = webos.launchParams();
+			if (params.success && params.needUpdate) {
+				app.setUpdateResults();
+			}
 			this.appIsRunning = true;
 		</script>
 	</body>

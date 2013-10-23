@@ -1,12 +1,12 @@
-﻿enyo.depends(
+enyo.depends(
+	"system.js",
 	"windows",
 	"ApplicationEvents.js",
 	
-	"CrossAppUI.js",
+	//"CrossAppUI.js",
 	"Dashboard.js",
 	"FilePicker.js",
 	"keyboard.js",
 	
-	"system.js",
 	"setuplogging.js"
 );
