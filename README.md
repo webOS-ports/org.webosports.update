@@ -7,11 +7,9 @@ Todos:
 - downloadUpdateAssistant is a stub
 - initiateUpdateAssistant is a stub
 - parse opkg output and deliver status to UI
-- make UI pretty
-- at least get spinner to center (AHRG!!)
 
 Known issue:
-- App won't launch from launcher if notification icon is present.
+- App won't launch from launcher if notification icon is present (seen on legacy).
 
 Frameworks used:
 - Enyo.js Bootplate 2.2

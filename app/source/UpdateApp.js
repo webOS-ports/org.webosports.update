@@ -6,57 +6,35 @@ enyo.kind({
 	kind: "FittableRows",
 	fit: true,
 	currentRequest: false,
+	classes: "default-background center",
 	published: {
 		updateResults: null
 	},
-	components: [
-		//service caller:
-		{
-			name: "updateService",
-			kind: "enyo.PalmService",
-			service: "palm://org.webosports.service.update",
-			method: "checkUpdate",
-			subscribe: false,
-			onComplete: "updateChecked"
-		},
-		{
-			name: "downloadService",
-			kind: "enyo.PalmService",
-			service: "palm://org.webosports.service.update",
-			method: "downloadUpdate",
-			subscribe: true,
-			//resubscribe: true, //not sure what that really means.
-			onComplete: "downloadComplete"
-		},
-		{
-			name: "initiateService",
-			kind: "enyo.PalmService",
-			service: "palm://org.webosports.service.update",
-			method: "initiateUpdate",
-			subscribe: false,
-			onComplete: "initiateUpdateComplete"
-		},
-		
+	components: [	
 		//ui components:
-		{kind: "onyx.Toolbar", content: "System Update", classes: "center"},
+		{kind: "onyx.Toolbar", content: "System Update"},
 		
 		//display status information and change log:
 		{
 			name: "statusDisplay",
-			classes: "nice-padding center",
+			classes: "nice-padding",
 			fit: false,
 			content: "Please check for updates"
 		},
 		{
-			kind: "enyo.Scroller",
-			fit: true,
-			touch: true,
-			components: [
-				{name: "spinner", kind: "onyx.Spinner", showing: false, classes: "center"},
-				{name: "changesDisplay", classes: "nice-padding", allowHtml: true}
+			name: "changesDisplayContainer", 
+			kind: "enyo.FittableRows", 
+			classes: "changes-display", 
+			fit: true, components: [
+				{classes: "vspacer"},
+				{name: "spinner", kind: "onyx.Spinner", showing: false},
+				{kind: "enyo.Scroller",fit: true,touch: true,components: [
+					{name: "changesDisplay", classes: "nice-padding", style: "text-align: left;", allowHtml: true}
+				]},
+				{classes: "vspacer"}
 			]
 		},
-			
+		
 		//buttons:
 		{name: "toolbarControls", kind: "onyx.Toolbar", classes: "center", components: [
 			{
@@ -88,6 +66,33 @@ enyo.kind({
 			kind: enyo.ApplicationEvents,
 			onWindowParamsChange: "windowParamsChangeHandler",
 			onApplicationRelaunch: "relaunched"
+		},
+		
+				//service caller:
+		{
+			name: "updateService",
+			kind: "enyo.PalmService",
+			service: "palm://org.webosports.service.update",
+			method: "checkUpdate",
+			subscribe: false,
+			onComplete: "updateChecked"
+		},
+		{
+			name: "downloadService",
+			kind: "enyo.PalmService",
+			service: "palm://org.webosports.service.update",
+			method: "downloadUpdate",
+			subscribe: true,
+			//resubscribe: true, //not sure what that really means.
+			onComplete: "downloadComplete"
+		},
+		{
+			name: "initiateService",
+			kind: "enyo.PalmService",
+			service: "palm://org.webosports.service.update",
+			method: "initiateUpdate",
+			subscribe: false,
+			onComplete: "initiateUpdateComplete"
 		}
 	],
 	
