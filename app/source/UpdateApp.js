@@ -105,23 +105,26 @@ enyo.kind({
 	//button callbacks:
 	doCheck: function (inSender, inEvent) {
 		this.currentRequest = this.$.updateService.send({});
-		this.startActivity();
+		this.startActivity("Checking remote plattform version...");
 	},
 	doDownload: function (inSender, inEvent) {
 		this.currentRequest = this.$.downloadService.send({});
-		this.startActivity();
+		this.startActivity("Starting to download system update...");
 	},
 	doInstall: function (inSender, inEvent) {
 		this.currentRequest = this.$.initiateService.send({});
-		this.startActivity();
+		this.startActivity("Initiating reboot into system update state.");
 	},
 	
 	//helper methods:
-	startActivity: function () {
+	startActivity: function (msg) {
 		this.$.toolbarControls.hide();
 		this.$.changesDisplay.hide();
 		this.$.spinner.show();
 		this.$.spinner.start();
+		if (msg) {
+			this.updateStatus(msg);
+		}
 	},
 	stopActivity: function () {
 		if (this.currentRequest) {
