@@ -1,4 +1,4 @@
-/*global fs, Future, Config, log, utils, AjaxCall */
+/*global fs, spawn, Future, Config, log, utils, AjaxCall */
 
 var Utils = (function () {
 	"use strict";
@@ -60,6 +60,28 @@ var Utils = (function () {
 					log("Could not get manifest: " + JSON.stringify(e));
 					future.exception = e;
 				}
+			});
+			
+			return future;
+		},
+		
+		spawnChild: function (command, outputCallback) {
+			var future = new Future(), child;
+			
+			child = spawn(command.cmd, command.args, command.options);
+			
+			if (typeof outputCallback === "function") {
+				child.stdout.on("data", function (data) {
+					outputCallback({msg: data, type: "out"});
+				});
+			
+				child.stderr.on("data", function (data) {
+					outputCallback({msg: data, type: "err"});
+				});
+			}
+			
+			child.on("close", function (code) {
+				future.result = {finished: true, error: code !== 0, code: code};
 			});
 			
 			return future;

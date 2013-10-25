@@ -11,6 +11,6 @@ var Config = {
 	parseWholeStringRegExp: /([0-9\._\-A-Za-z]+) release ([0-9\.]+)-([0-9]+)-([0-9]+) \(([0-9a-zA-Z_\-\.]+)\)/,
 	parseWholeStringIndex: 3,
 	parseOnlyPlattformVersionRegExp: /.*?-([0-9]+)-.*?/,
-	preDowlonloadCommand: "opkg update",
-	downloadCommand: "opkg upgrade --download-only --cache /media/internal/.upgrade-storage"
+	preDownloadCommand: {cmd: "opkg", args: ["update"] },
+	downloadCommand: {cmd: "opkg", args: ["--cache", "/media/internal/.upgrade-storage", "upgrade", "--download-only"]}
 };

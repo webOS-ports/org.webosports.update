@@ -1,5 +1,5 @@
 /*jslint node: true */
-/*global log, debug, Future, Utils, ActivityHelper */
+/*global log, debug, Future, Utils, ActivityHelper, Config, Parser */
 
 var DownloadUpdateAssistant = function () {
 	"use strict";
@@ -8,7 +8,7 @@ var DownloadUpdateAssistant = function () {
 DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 	"use strict";
 	var future = new Future(), args = this.controller.args,
-		start = Date.now(), numDownloaded = 0;
+		numDownloaded = 0, downloading = false;
 	
 	if (args) {
 		ActivityHelper.adoptActivity(args.$activity);
@@ -27,28 +27,36 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 	
 	//send errors to application:
 	function handleError(msg, error) {
+		var outMsg = msg + ": " + (error.message || error.msg) + (error.code ? (", code: " + error.code) : "");
 		log(msg + ": " + JSON.stringify(error));
-		outerFuture.result = { returnValue: false, success: false, error: true, msg: error.message};
+		outerFuture.result = { returnValue: false, success: false, error: true, msg: outMsg};
 	}
-	
-	function idle() {
-		var now = Date.now(), secs = ((now - start) / 1000.0);
-				
-		if (secs % 10 < 1) {
-			numDownloaded += 1;
-			logToApp({numDownloaded: numDownloaded, totalDownload: 30});
-		}
 		
-		log("I'm idling for " + secs + " seconds now... lalala");
-		if (secs > 11) {
-			log("Ok, 5 min is enough. I'll exit.");
-			outerFuture.result = {success: true, finished: true, error: false, msg: "all done"};
-		} else {
-			setTimeout(idle, 1000);
+	//handles child process output and termination:
+	function childCallback() {
+		try {
+			var result = future.result;
+			if (result.finished && result.error === false) {			
+				if (downloading) {
+					//we are done:
+					outerFuture.result = {success: true, finished: true, error: false, msg: "Done downloading."};
+				} else {
+					//package feed update finished. Go on.
+					downloading = true;
+					future.nest(Utils.spawnChild(Config.downloadCommand, Parser.parseDownloadOutput));
+					future.then(childCallback);
+				}
+			} else {
+				throw ({message: "Child did finish with error", errorCode: result.code});
+			}
+		} catch (e) {
+			handleError("Error during " + (downloading ? "downloading packages" : "updating feeds"), e);
 		}
 	}
 	
-	setTimeout(idle, 1000);
+	future.nest(Utils.spawnChild(Config.preDownloadCommand, Parser.parseUpdateOutput));
+	
+	future.then(childCallback);
 	
 	return outerFuture;
 };
