@@ -6,11 +6,13 @@ var Config = {
 	//regexp to parse webos-release file. Will return:
 	//${BUILD_DISTRIB_ID} release ${DISTRO_VERSION}-${WEBOS_DISTRO_BUILD_ID} (${WEBOS_DISTRO_RELEASE_CODENAME})
 	//where ${WEBOS_DISTRO_BUILD_ID} is ${PLATTFORMVERSION}-${BUILD}
-	//this probably is a little brittle, but would give all the information:
-	//issue is with not expected characters in any of the unimportant parts
 	parseWholeStringRegExp: /([0-9\._\-A-Za-z]+) release ([0-9\.]+)-([0-9]+)-([0-9]+) \(([0-9a-zA-Z_\-\.]+)\)/,
 	parseWholeStringIndex: 3,
 	parseOnlyPlattformVersionRegExp: /.*?-([0-9]+)-.*?/,
 	preDownloadCommand: {cmd: "opkg", args: ["update"] },
-	downloadCommand: {cmd: "opkg", args: ["--cache", "/media/internal/.upgrade-storage", "upgrade", "--download-only"]}
+	numPackagesCommand: {cmd: "opkg", args: ["list-upgradable"] },
+	//using script here to get line by line output from download command:
+	downloadCommand: {cmd: "script", args: ["-q","-c","/usr/palm/services/org.webosports.service.update/download-updates.sh","/dev/null"]},
+	downloadPath: "/media/internal/.upgrade-storage", //used to check if path exists
+	rebootToUpdateModeCommand: {cmd: "echo", args: ["This should be replaced with something that reboots into the update mode..."]}
 };

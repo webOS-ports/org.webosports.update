@@ -167,7 +167,7 @@ enyo.kind({
 			this.$.btnInitiateUpdate.show();
 			this.$.btnDownload.hide();
 		} else { //only some status from service:
-			this.updateStatus("Downloaded " + result.numDownloaded + " of " + result.totalDownload + " packages.");
+			this.updateStatus("Downloaded " + result.numDownloaded + " of " + result.toDownload + " packages.");
 		}
 	},
 	

@@ -39,6 +39,28 @@ var Utils = (function () {
 			return future;
 		},
 		
+		checkDirectory: function (path) {
+			var future = new Future();
+			
+			fs.exists(path, function pathCheckCallback(exists) {
+				if (!exists) {
+					fs.mkdir(Config.downloadPath, function creationCallback(err) {
+						if (err) {
+							future.exception = err;
+						} else {
+							log("Download directory created.");
+							future.result = {returnValue: true};
+						}
+					});
+				} else {
+					//directory is there, all fine.
+					future.result = {returnValue: true};
+				}
+			});
+			
+			return future;
+		},
+		
 		getManifest: function () {
 			var future = new Future();
 			
@@ -70,18 +92,37 @@ var Utils = (function () {
 			
 			child = spawn(command.cmd, command.args, command.options);
 			
-			if (typeof outputCallback === "function") {
-				child.stdout.on("data", function (data) {
-					outputCallback({msg: data, type: "out"});
-				});
+			child.stdout.on("data", function (data) {
+				if (typeof outputCallback === "function") {
+					try {
+						outputCallback({msg: data.toString(), type: "out"});
+					} catch (e) {
+						future.exception = e;
+					}
+				} else {
+					log("Child-out: " + data.toString());
+				}
+			});
 			
-				child.stderr.on("data", function (data) {
-					outputCallback({msg: data, type: "err"});
-				});
-			}
+			child.stderr.on("data", function (data) {
+				if (typeof outputCallback === "function") {
+					try {
+						outputCallback({msg: data.toString(), type: "err"});
+					} catch (e) {
+						future.exception = e;
+					}
+				} else {
+					log("Child-err: " + data.toString());
+				}
+			});
 			
 			child.on("close", function (code) {
 				future.result = {finished: true, error: code !== 0, code: code};
+			});
+			
+			child.on("error", function (err) {
+				log("Error in spawning child: " + err.message);
+				future.exception = err;
 			});
 			
 			return future;

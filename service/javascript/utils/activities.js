@@ -2,12 +2,16 @@
 
 var ActivityHelper = (function () {
 	"use strict";
-	var activityName = "org.webosports.update: Periodic Update Check";
+	var activityName = "org.webosports.service.update: Periodic Update Check",
+		checkedActivity = false;
 	
 	//public interface
 	return {
-		//not used. Created by configuration file. See if that works ok.
-		/*createActivity: function () {
+		//we also have this in a configuration file...
+		//but current OWO does not read that, I fear... probably legacy hasn't read that, neither.
+		//to get the activity one would need to run the app and check for updates or
+		//run luna-send -n 1 palm://org.webosports.service.update/checkUpdate {}
+		createActivity: function () {
 			var future = new Future(), activity;
 			
 			activity = {
@@ -43,7 +47,32 @@ var ActivityHelper = (function () {
 			});
 			
 			return future;
-		},*/
+		},
+		
+		checkActivity: function() {
+			var future = new Future();
+			
+			//This currently gives bad exceptions and some kind of timeout in OWO. ActivityManager not working??? :(
+			//future.nest(PalmCall.call("palm://com.palm.activitymanager/", "getDetails", {
+			//	activityName: activityName
+			//}));
+			
+			//future.then(function getDetailsCB() {
+			//	var result = future.result;
+			//	if (result.returnValue !== true) {
+			//		log("Activity was not present, creating it: " + JSON.stringify(result));
+			//		future.nest(ActivityHelper.createActivity());
+			//	} else {
+			//		log("Activity already existed.");
+			//		future.result = {returnValue: true};
+			//	}
+			//	checkedActivity = true;
+			//});
+			
+			future.result = {returnValue: true};
+			
+			return future;
+		},
 		
 		restartActivity: function (activity) {
 			var restart;
@@ -55,16 +84,22 @@ var ActivityHelper = (function () {
 			return new Future({returnValue: true});
 		},
 		
-		
 		//check if service controller really already does that for us. I'm not sure. Maybe on touch pad?
 		adoptActivity: function (passed_activity) {
 			var future = new Future();
 			if (passed_activity) {
 				if (passed_activity.name === activityName) {
 					log("Need to adopt activity... Is this done by framework??");
+					//future.nest(PalmCall.call("palm://com.palm.activitymanager/", "adopt", {
+					//	activityId: passed_activity.id
+					//}));
 				}
 			} else {
 				future.result = {returnValue: true};
+				if (!checkedActivity) {
+					log("No activity passed. Check for persistent activity.");
+					ActivityHelper.checkActivity();
+				}
 			}
 			return future;
 		}
