@@ -3,9 +3,31 @@
 	This way, you can minify your application, and just remove the "source" folder for production
 */
 .nice-padding {
-	padding: 15px;
+	padding-left: 7.5%;
+	padding-right: 7.5%;
+	padding-top: 2.5%;
+	padding-bottom: 2.5%;
+}
+
+.default-background {
+	background-color: #AAAAAA;
 }
 
 .center {
 	text-align: center;	
+}
+
+.changes-display {
+	background-color: #CCCCCC;
+	border-radius: 20px;
+	border: 0px solid #CCCCCC;
+	width: 90%;
+	height: 100%;
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-bottom: 2.5%;
+}
+
+.vspacer {
+	height: 7.5%;
 }

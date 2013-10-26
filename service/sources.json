@@ -24,6 +24,9 @@
 		"source": "javascript/utils/activities.js"
 	},
 	{
+		"source": "javascript/utils/parser.js"
+	},
+	{
 		"source": "javascript/utils/utils.js"
 	}
 ]

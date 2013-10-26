@@ -41,7 +41,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 	
 	future.then(this, function manifestCallback() {
 		try {
-			var result = future.result, changesSinceLast = [], i, newResult;
+			var result = future.result, changesSinceLast = [], newResult;
 			if (result && result.returnValue === true) {
 				manifest = result.manifest;
 				remoteVersion = manifest.platformVersion;

@@ -1,4 +1,4 @@
-/*global fs, Future, Config, log, utils, AjaxCall */
+/*global fs, spawn, Future, Config, log, utils, AjaxCall */
 
 var Utils = (function () {
 	"use strict";
@@ -39,6 +39,28 @@ var Utils = (function () {
 			return future;
 		},
 		
+		checkDirectory: function (path) {
+			var future = new Future();
+			
+			fs.exists(path, function pathCheckCallback(exists) {
+				if (!exists) {
+					fs.mkdir(Config.downloadPath, function creationCallback(err) {
+						if (err) {
+							future.exception = err;
+						} else {
+							log("Download directory created.");
+							future.result = {returnValue: true};
+						}
+					});
+				} else {
+					//directory is there, all fine.
+					future.result = {returnValue: true};
+				}
+			});
+			
+			return future;
+		},
+		
 		getManifest: function () {
 			var future = new Future();
 			
@@ -60,6 +82,47 @@ var Utils = (function () {
 					log("Could not get manifest: " + JSON.stringify(e));
 					future.exception = e;
 				}
+			});
+			
+			return future;
+		},
+		
+		spawnChild: function (command, outputCallback) {
+			var future = new Future(), child;
+			
+			child = spawn(command.cmd, command.args, command.options);
+			
+			child.stdout.on("data", function (data) {
+				if (typeof outputCallback === "function") {
+					try {
+						outputCallback({msg: data.toString(), type: "out"});
+					} catch (e) {
+						future.exception = e;
+					}
+				} else {
+					log("Child-out: " + data.toString());
+				}
+			});
+			
+			child.stderr.on("data", function (data) {
+				if (typeof outputCallback === "function") {
+					try {
+						outputCallback({msg: data.toString(), type: "err"});
+					} catch (e) {
+						future.exception = e;
+					}
+				} else {
+					log("Child-err: " + data.toString());
+				}
+			});
+			
+			child.on("close", function (code) {
+				future.result = {finished: true, error: code !== 0, code: code};
+			});
+			
+			child.on("error", function (err) {
+				log("Error in spawning child: " + err.message);
+				future.exception = err;
 			});
 			
 			return future;
