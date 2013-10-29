@@ -110,7 +110,7 @@ enyo.kind({
 	//button callbacks:
 	doCheck: function (inSender, inEvent) {
 		this.currentRequest = this.$.updateService.send({});
-		this.startActivity("Checking remote plattform version...");
+		this.startActivity("Checking remote platform version...");
 	},
 	doDownload: function (inSender, inEvent) {
 		this.currentRequest = this.$.downloadService.send({});
@@ -176,9 +176,9 @@ enyo.kind({
 		
 		this.stopActivity();
 		if (result.success) { //had error. Download aborted or something...
-			this.updateStatus("Successful initiated update. System will now reboot and update.");
+			this.updateStatus("Successfully initiated update. System will now reboot and update.");
 		} else { //only some status from service:
-			this.updateStatus("Error, could not initiate Update: " + result.msg);
+			this.updateStatus("Error, could not initiate update: " + result.msg);
 		}
 	},
 	
