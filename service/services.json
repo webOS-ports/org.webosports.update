@@ -12,18 +12,18 @@
 				{
 					"name":			"checkUpdate",
 					"assistant":	"CheckUpdateAssistant",
-					"public":		true
+					"public":		false
 				},
 				{
 					"name":			"downloadUpdate",
 					"assistant":	"DownloadUpdateAssistant",
 					"subscribe": 	true,
-					"public":		true
+					"public":		false
 				},
 				{
 					"name":			"initiateUpdate",
 					"assistant":	"InitiateUpdateAssistant",
-					"public":		true
+					"public":		false
 				}
 			]
 		}
