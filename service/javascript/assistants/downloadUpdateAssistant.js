@@ -7,14 +7,9 @@ var DownloadUpdateAssistant = function () {
 
 DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 	"use strict";
-	var future = new Future(), args = this.controller.args,
+	var future = new Future(),
 		numDownloaded = 0, toDownload = 0, doneUpdating = false, doneGetNumPackages = false;
-	
-	
-	if (args) {
-		ActivityHelper.adoptActivity(args.$activity);
-	}
-	
+		
 	//send status to application... 
 	function logToApp(numNew) {
 		numDownloaded += numNew;
