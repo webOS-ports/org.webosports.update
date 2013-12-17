@@ -7,12 +7,8 @@ var InitiateUpdateAssistant = function () {
 
 InitiateUpdateAssistant.prototype.run = function (outerFuture) {
 	"use strict";
-	var future = new Future(), args = this.controller.args;
-	
-	if (args) {
-		ActivityHelper.adoptActivity(args.$activity);
-	}
-	
+	var future = new Future();
+
 	//send errors to application:
 	function handleError(msg, error) {
 		log(msg + ": " + JSON.stringify(error));

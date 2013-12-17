@@ -11,8 +11,6 @@
 		},
 		"type": {
 			"background" :		true,
-			"immediate":		false,
-			"priority":			"lowest",
 			"userInitiated":	false,
 			"pausable":			true,
 			"cancellable":		true,
@@ -23,7 +21,8 @@
 			"power":			true,
 			"powerDebounce":	true
 		},
-		"schedule": { "interval": "24h" },
+		"schedule": { "interval": "24h", "precise": false }
 	},
+	"start": true,
 	"replace": true
 }
