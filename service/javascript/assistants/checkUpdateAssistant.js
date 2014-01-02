@@ -8,11 +8,7 @@ var CheckUpdateAssistant = function () {
 CheckUpdateAssistant.prototype.run = function (outerFuture) {
 	"use strict";
 	var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest;
-
-	if (args) {
-		ActivityHelper.adoptActivity(args.$activity);
-	}
-
+    
 	function handleError(msg, error) {
 		if (!error) {
 			error = {};
