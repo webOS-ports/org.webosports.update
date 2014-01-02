@@ -8,7 +8,10 @@ var DownloadUpdateAssistant = function () {
 DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 	"use strict";
 	var future = new Future(),
-		numDownloaded = 0, toDownload = 0, doneUpdating = false, doneGetNumPackages = false;
+		numDownloaded = 0,
+		toDownload = 0,
+		doneUpdating = false,
+		doneGetNumPackages = false;
 		
 	//send status to application... 
 	function logToApp(numNew) {
