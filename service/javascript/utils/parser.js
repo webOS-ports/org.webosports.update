@@ -35,26 +35,26 @@ var Parser = (function () {
 			if (data.type === "out") {
 				numPackages += countLines(data.msg);
 			} else {
-				log ("Got error output from list-upgradable: " + data.msg);
+				log("Got error output from list-upgradable: " + data.msg);
 			}
 		},
 		
 		//clears temporary data:
-		clear: function() {
+		clear: function () {
 			updateLog = [];
 			downloadLog = [];
 			numPackages = 0;
 		},
 		
-		getUpdateLog: function() {
+		getUpdateLog: function () {
 			return updateLog.join("\n");
 		},
 		
-		getDownloadLog: function() {
+		getDownloadLog: function () {
 			return downloadLog.join("\n");
 		},
 		
-		getNumPackages: function() {
+		getNumPackages: function () {
 			return numPackages;
 		}
 	};

@@ -8,11 +8,7 @@ var CheckUpdateAssistant = function () {
 CheckUpdateAssistant.prototype.run = function (outerFuture) {
 	"use strict";
 	var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest;
-
-	if (args) {
-		ActivityHelper.adoptActivity(args.$activity);
-	}
-
+    
 	function handleError(msg, error) {
 		if (!error) {
 			error = {};
@@ -51,9 +47,8 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 					return;
 				}
 
-				if (remoteVersion === localVersion) {
-					outerFuture.result = { returnValue: true, success: true,  needUpdate: false};
-				} else {
+                log("Remote version came back: " + remoteVersion);
+				if (remoteVersion > localVersion) {
 					//get changes since last update:
 					manifest.changeLog.forEach(function filterChanges(change) {
 						if (change.version > localVersion) {
@@ -77,7 +72,10 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 					});*/
 
 					outerFuture.result = newResult;
-				}
+				} else {
+                    //no update necessary.
+                    outerFuture.result = { returnValue: true, success: true,  needUpdate: false};
+                }
 
 			} else {
 				handleError("Could not get manifest", future.exception);
