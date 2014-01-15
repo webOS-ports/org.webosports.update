@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the webOS system update
+
+[Service]
+Type=oneshot
+ExecStart=/usr/palm/services/org.webosports.service.update/run-update.sh
+StandardOutput=syslog
+RemainAfterExit=No
+
+[Install]
+WantedBy=system-update.target
