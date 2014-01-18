@@ -2,13 +2,13 @@
 
 var Utils = (function () {
 	"use strict";
-	
-	
+
+
 	//public interface
 	return {
 		getLocalPlatformVersion: function () {
 			var future = new Future();
-			
+
 			fs.readFile(Config.versionFile, function fileReadCallback(err, data) {
 				if (err) {
 					future.exception = { message: err.message, errorCode: -1 };
@@ -17,7 +17,7 @@ var Utils = (function () {
 				} else {
 					var version, dataStr = data.toString(), matches;
 					log("Got data from file: " + dataStr);
-					
+
 					matches = Config.parseWholeStringRegExp.exec(dataStr);
 					//log("parseWholeStringRegExp: " + JSON.stringify(matches));
 					version = matches && parseInt(matches[Config.parseWholeStringIndex], 10);
@@ -27,7 +27,7 @@ var Utils = (function () {
 						matches = Config.parseOnlyPlattformVersionRegExp.exec(dataStr);
 						version = matches && parseInt(matches[1], 10); //first match is always the complete string.
 					}
-					
+
 					if (!version && version !== 0) {
 						future.exception = { message: "Could not parse version from file: " + dataStr, errorCode: -1};
 					} else {
@@ -35,13 +35,13 @@ var Utils = (function () {
 					}
 				}
 			});
-			
+
 			return future;
 		},
-		
+
 		checkDirectory: function (path) {
 			var future = new Future();
-			
+
 			fs.exists(path, function pathCheckCallback(exists) {
 				if (!exists) {
 					fs.mkdir(Config.downloadPath, function creationCallback(err) {
@@ -57,15 +57,15 @@ var Utils = (function () {
 					future.result = {returnValue: true};
 				}
 			});
-			
+
 			return future;
 		},
-		
+
 		getManifest: function () {
 			var future = new Future();
-			
+
 			future.nest(AjaxCall.get(Config.manifestUrl));
-			
+
 			future.then(this, function getCallback() {
 				try {
 					var result = future.result;
@@ -83,15 +83,15 @@ var Utils = (function () {
 					future.exception = e;
 				}
 			});
-			
+
 			return future;
 		},
-		
+
 		spawnChild: function (command, outputCallback) {
 			var future = new Future(), child;
-			
+
 			child = spawn(command.cmd, command.args, command.options);
-			
+
 			child.stdout.on("data", function (data) {
 				if (typeof outputCallback === "function") {
 					try {
@@ -103,7 +103,7 @@ var Utils = (function () {
 					log("Child-out: " + data.toString());
 				}
 			});
-			
+
 			child.stderr.on("data", function (data) {
 				if (typeof outputCallback === "function") {
 					try {
@@ -115,18 +115,18 @@ var Utils = (function () {
 					log("Child-err: " + data.toString());
 				}
 			});
-			
+
 			child.on("close", function (code) {
 				future.result = {finished: true, error: code !== 0, code: code};
 			});
-			
+
 			child.on("error", function (err) {
 				log("Error in spawning child: " + err.message);
-				future.exception = err;
+				future.result = {finished: true, error: true, errorObj: err};
 			});
-			
+
 			return future;
 		}
 	};
-	
+
 }());
