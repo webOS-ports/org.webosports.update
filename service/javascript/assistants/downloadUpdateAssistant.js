@@ -12,8 +12,8 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 		toDownload = 0,
 		doneUpdating = false,
 		doneGetNumPackages = false;
-		
-	//send status to application... 
+
+	//send status to application...
 	function logToApp(numNew) {
 		numDownloaded += numNew;
 		var f, status = { numDownloaded: numDownloaded, toDownload: toDownload };
@@ -24,14 +24,22 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 			log("Don't have subscription... Would have sended: " + JSON.stringify(status));
 		}
 	}
-	
+
 	//send errors to application:
 	function handleError(msg, error) {
-		var outMsg = msg + ": " + (error.message || error.msg) + (error.code ? (", code: " + error.code) : "");
+		var outMsg = msg;
+		if (error) {
+			outMsg += ":\n" + (error.message || error.msg) + (error.code ? ("\nErrorCode: " + error.code) : "") + (error.errorCode ? ("\nErrorCode: " + error.errorCode) : "");
+		}
 		log(msg + ": " + JSON.stringify(error));
-		outerFuture.result = { returnValue: false, success: false, error: true, msg: outMsg};
+		outerFuture.result = {
+			success: false,
+			error: true, //tell app we have an error message
+			msg: outMsg,
+			errorStage: doneUpdating ? doneGetNumPackages ? "download" : "getNumPackages" : "feedsUpdate"
+		};
 	}
-		
+
 	//handles child process output and termination:
 	function childCallback() {
 		try {
@@ -55,17 +63,17 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 					future.then(childCallback);
 				}
 			} else {
-				throw ({message: "Child did finish with error", errorCode: result.code});
+				throw ({message: Parser.getErrorMessage() || "Child did finish with error", errorCode: result.code});
 			}
 		} catch (e) {
 			handleError("Error during " + (doneUpdating ? "downloading packages" : "updating feeds"), e);
 		}
 	}
-	
+
 	Parser.clear();
-	
+
 	future.nest(Utils.checkDirectory(Config.downloadPath));
-	
+
 	future.then(function pathCB() {
 		try {
 			var result = future.result;
@@ -78,9 +86,9 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 			handleError("Error during checking/creating download directory", e);
 		}
 	});
-	
+
 	future.then(childCallback);
-	
+
 	return outerFuture;
 };
 
