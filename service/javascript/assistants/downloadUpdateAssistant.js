@@ -8,6 +8,7 @@ var DownloadUpdateAssistant = function () {
 DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 	"use strict";
 	var future = new Future(),
+		args = this.controller.args,
 		numDownloaded = 0,
 		toDownload = 0,
 		doneUpdating = false,
@@ -59,6 +60,7 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 					//package feed update finished. Go on.
 					doneUpdating = true;
 					log("Update Log:\n" + Parser.getUpdateLog());
+
 					future.nest(Utils.spawnChild(Config.numPackagesCommand, Parser.parseNumPackages));
 					future.then(childCallback);
 				}
@@ -78,7 +80,12 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 		try {
 			var result = future.result;
 			if (result.returnValue) {
-				future.nest(Utils.spawnChild(Config.preDownloadCommand, Parser.parseUpdateOutput));
+				if (args.skipFeedsUpdate) {
+					doneUpdating = true;
+					future.nest(Utils.spawnChild(Config.numPackagesCommand, Parser.parseNumPackages));
+				} else {
+					future.nest(Utils.spawnChild(Config.preDownloadCommand, Parser.parseUpdateOutput));
+				}
 			} else {
 				throw {message: "Unknown error: " + JSON.stringify(result)};
 			}
