@@ -21,6 +21,9 @@
 		"source": "javascript/assistants/initiateUpdateAssistant.js"
 	},
 	{
+		"source": "javascript/assistants/retrieveVersionAssistant.js"
+	},
+	{
 		"source": "javascript/utils/activities.js"
 	},
 	{
