@@ -24,6 +24,11 @@
 					"name":			"initiateUpdate",
 					"assistant":	"InitiateUpdateAssistant",
 					"public":		false
+				},
+				{
+					"name":			"retrieveVersion",
+					"assistant":	"RetrieveVersionAssistant",
+					"public": true
 				}
 			]
 		}
