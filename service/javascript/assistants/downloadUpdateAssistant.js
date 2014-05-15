@@ -1,5 +1,5 @@
 /*jslint node: true */
-/*global log, fs, debug, Future, Utils, ActivityHelper, Config, Parser */
+/*global log, fs, debug, Future, Utils, ActivityHelper, Config, Parser, PalmCall */
 
 var DownloadUpdateAssistant = function () {
 	"use strict";
@@ -70,8 +70,17 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
     
 	Parser.clear();
 
-	future.nest(Utils.checkDirectory(Config.downloadPath));
-
+    future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getStatus", {subscribe: false}));
+    
+    future.then(function getStatusCB() {
+        var result = Utils.checkResult(future);
+        if (result.returnValue && result.isInternetConnectionAvailable) {
+            future.nest(Utils.checkDirectory(Config.downloadPath));
+        } else {
+            handleError("Not online, can't check for updates.");
+        }
+    });
+    
 	future.then(function pathCB() {
         var result = Utils.checkResult(future);
         if (result.returnValue) {

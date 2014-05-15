@@ -16,8 +16,18 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 		log(msg + ": " + JSON.stringify(error));
 		outerFuture.result = { returnValue: false, success: false, needUpdate: false, message: error.message};
 	}
-
-	future.nest(Utils.getLocalPlatformVersion());
+        
+    future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getStatus", {subscribe: false}));
+    
+    future.then(function getStatusCB() {
+        var result = Utils.checkResult(future);
+        log("Connection status: " + JSON.stringify(result));
+        if (result.returnValue && result.isInternetConnectionAvailable) {
+            future.nest(Utils.getLocalPlatformVersion());
+        } else {
+            handleError("Not online, can't check for updates.");
+        }
+    });
 
 	future.then(this, function localVersionCallback() {
         var result = Utils.checkResult(future);
