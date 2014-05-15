@@ -14,7 +14,13 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 			error = {};
 		}
 		log(msg + ": " + JSON.stringify(error));
-		outerFuture.result = { returnValue: false, success: false, needUpdate: false, message: error.message};
+        var message = msg;
+        if (typeof error === "string") {
+            msg += " - " + error;
+        } else if (error.message) {
+            msg += " - " + error.message;
+        }
+		outerFuture.result = { returnValue: false, success: false, needUpdate: false, message: msg};
 	}
         
     future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getStatus", {subscribe: false}));
