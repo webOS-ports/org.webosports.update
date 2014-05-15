@@ -6,6 +6,20 @@ var Utils = (function () {
 
 	//public interface
 	return {
+        //helper to check result of futures with catching exceptions
+        //because futures can "transport" exceptions to waiting
+        //functions.
+        //Using this small function should allow V8 to optimize the other functions,
+        //because functions including try-catch can not be optimized currently.
+        checkResult: function (future) {
+            var exception = future.exception;
+            if (exception) {
+                return {returnValue: false, exception: future.exception};
+            } else {
+                return future.result;
+            }
+        },
+        
 		getLocalPlatformVersion: function () {
 			var future = new Future();
 
