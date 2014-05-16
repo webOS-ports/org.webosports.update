@@ -2,29 +2,29 @@
 /*global log, debug, Future, Utils, ActivityHelper, PalmCall */
 
 var CheckUpdateAssistant = function () {
-	"use strict";
+    "use strict";
 };
 
 CheckUpdateAssistant.prototype.run = function (outerFuture) {
-	"use strict";
-	var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest;
-    
-	function handleError(msg, error) {
-		if (!error) {
-			error = {};
-		}
-		log(msg + ": " + JSON.stringify(error));
+    "use strict";
+    var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest;
+
+    function handleError(msg, error) {
+        if (!error) {
+            error = {};
+        }
+        log(msg + ": " + JSON.stringify(error));
         var message = msg;
         if (typeof error === "string") {
             msg += " - " + error;
         } else if (error.message) {
             msg += " - " + error.message;
         }
-		outerFuture.result = { returnValue: false, success: false, needUpdate: false, message: msg};
-	}
-        
+        outerFuture.result = { returnValue: false, success: false, needUpdate: false, message: msg};
+    }
+
     future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getStatus", {subscribe: false}));
-    
+
     future.then(function getStatusCB() {
         var result = Utils.checkResult(future);
         log("Connection status: " + JSON.stringify(result));
@@ -35,7 +35,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         }
     });
 
-	future.then(this, function localVersionCallback() {
+    future.then(this, function localVersionCallback() {
         var result = Utils.checkResult(future);
         log("localVersion came back: " + JSON.stringify(result));
         if (result.returnValue === true) {
@@ -45,9 +45,9 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
             log("localVersion came back WITH ERROR: " + JSON.stringify(result));
             handleError("Could not get local plattform version.", result.exception);
         }
-	});
+    });
 
-	future.then(this, function manifestCallback() {
+    future.then(this, function manifestCallback() {
         var result = Utils.checkResult(future), changesSinceLast = [], newResult;
         if (result && result.returnValue === true) {
             manifest = result.manifest;
@@ -95,12 +95,12 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         } else {
             handleError("Could not get manifest", future.exception);
         }
-	});
+    });
 
-	return outerFuture;
+    return outerFuture;
 };
 
 CheckUpdateAssistant.prototype.complete = function (activity) {
-	"use strict";
-	return ActivityHelper.restartActivity(activity);
+    "use strict";
+    return ActivityHelper.restartActivity(activity);
 };

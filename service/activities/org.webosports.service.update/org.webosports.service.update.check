@@ -1,28 +1,28 @@
 {
-	"activity": {
-		"name": "org.webosports.service.update: Periodic Update Check",
-		"description": "Periodic system update check",
-		"callback": {
-			"method": "palm://org.webosports.service.update/checkUpdate",
-			"params": {}
-		},
-		"requirements" : {
-			"internet" : true
-		},
-		"type": {
-			"background" :		true,
-			"userInitiated":	false,
-			"pausable":			true,
-			"cancellable":		true,
-			"probe":			true,
-			"persist":			true,
-			"explicit":			true,
-			"continuous":		false,
-			"power":			true,
-			"powerDebounce":	true
-		},
-		"schedule": { "interval": "24h", "precise": false }
-	},
-	"start": true,
-	"replace": true
+    "activity": {
+        "name": "org.webosports.service.update: Periodic Update Check",
+        "description": "Periodic system update check",
+        "callback": {
+            "method": "palm://org.webosports.service.update/checkUpdate",
+            "params": {}
+        },
+        "requirements" : {
+            "internet" : true
+        },
+        "type": {
+            "background" :   true,
+            "userInitiated": false,
+            "pausable":      true,
+            "cancellable":   true,
+            "probe":         true,
+            "persist":       true,
+            "explicit":      true,
+            "continuous":    false,
+            "power":         true,
+            "powerDebounce": true
+        },
+        "schedule": { "interval": "24h", "precise": false }
+    },
+    "start":   true,
+    "replace": true
 }

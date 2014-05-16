@@ -13,7 +13,7 @@ var AjaxCall = Foundations.Comms.AjaxCall;
 
 //node.js imports:
 if (typeof require === "undefined") {
-	require = IMPORTS.require;
+    require = IMPORTS.require;
 }
 var fs = require('fs');
 var spawn = require('child_process').spawn;
@@ -21,11 +21,11 @@ var spawn = require('child_process').spawn;
 console.error("--------->Loaded Libraries OK1");
 
 var log = function (msg) {
-	"use strict";
-	console.error(msg);
+    "use strict";
+    console.error(msg);
 };
 
 var debug = function (msg) {
-	"use strict";
-	console.error(msg);
+    "use strict";
+    console.error(msg);
 };

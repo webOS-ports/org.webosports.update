@@ -2,47 +2,47 @@
 /*global log, fs, debug, Future, Utils, ActivityHelper, Config, Parser, PalmCall */
 
 var DownloadUpdateAssistant = function () {
-	"use strict";
+    "use strict";
 };
 
 DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
-	"use strict";
-	var future = new Future(),
-		args = this.controller.args,
-		numDownloaded = 0,
-		toDownload = 0,
-		doneUpdating = false,
-		doneGetNumPackages = false;
+    "use strict";
+    var future = new Future(),
+        args = this.controller.args,
+        numDownloaded = 0,
+        toDownload = 0,
+        doneUpdating = false,
+        doneGetNumPackages = false;
 
-	//send status to application...
-	function logToApp(numNew) {
-		numDownloaded += numNew;
-		var f, status = { numDownloaded: numDownloaded, toDownload: toDownload };
-		if (subscription) {
-			f = subscription.get();
-			f.result = status;
-		} else {
-			log("Don't have subscription... Would have sended: " + JSON.stringify(status));
-		}
-	}
+    //send status to application...
+    function logToApp(numNew) {
+        numDownloaded += numNew;
+        var f, status = { numDownloaded: numDownloaded, toDownload: toDownload };
+        if (subscription) {
+            f = subscription.get();
+            f.result = status;
+        } else {
+            log("Don't have subscription... Would have sended: " + JSON.stringify(status));
+        }
+    }
 
-	//send errors to application:
-	function handleError(msg, error) {
-		var outMsg = msg;
-		if (error) {
-			outMsg += ":\n" + (error.message || error.msg) + (error.code ? ("\nErrorCode: " + error.code) : "") + (error.errorCode ? ("\nErrorCode: " + error.errorCode) : "");
-		}
-		log(msg + ": " + JSON.stringify(error));
-		outerFuture.result = {
-			success: false,
-			error: true, //tell app we have an error message
-			msg: outMsg,
-			errorStage: doneUpdating ? doneGetNumPackages ? "download" : "getNumPackages" : "feedsUpdate"
-		};
-	}
+    //send errors to application:
+    function handleError(msg, error) {
+        var outMsg = msg;
+        if (error) {
+            outMsg += ":\n" + (error.message || error.msg) + (error.code ? ("\nErrorCode: " + error.code) : "") + (error.errorCode ? ("\nErrorCode: " + error.errorCode) : "");
+        }
+        log(msg + ": " + JSON.stringify(error));
+        outerFuture.result = {
+            success: false,
+            error: true, //tell app we have an error message
+            msg: outMsg,
+            errorStage: doneUpdating ? doneGetNumPackages ? "download" : "getNumPackages" : "feedsUpdate"
+        };
+    }
 
-	//handles child process output and termination:
-	function childCallback() {
+    //handles child process output and termination:
+    function childCallback() {
         var result = Utils.checkResult(future);
         if (result.finished && result.error === false) {
             if (doneGetNumPackages) {
@@ -66,12 +66,12 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
         } else {
             handleError("Error during " + (doneUpdating ? "downloading packages" : "updating feeds"), result.exception || Parser.getErrorMessage());
         }
-	}
-    
-	Parser.clear();
+    }
+
+    Parser.clear();
 
     future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getStatus", {subscribe: false}));
-    
+
     future.then(function getStatusCB() {
         var result = Utils.checkResult(future);
         if (result.returnValue && result.isInternetConnectionAvailable) {
@@ -80,8 +80,8 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
             handleError("Not online, can't check for updates.");
         }
     });
-    
-	future.then(function pathCB() {
+
+    future.then(function pathCB() {
         var result = Utils.checkResult(future);
         if (result.returnValue) {
             if (args.skipFeedsUpdate) {
@@ -93,10 +93,9 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
         } else {
             handleError("Error during checking/creating download directory", result.exception);
         }
-	});
+    });
 
-	future.then(childCallback);
+    future.then(childCallback);
 
-	return outerFuture;
+    return outerFuture;
 };
-
