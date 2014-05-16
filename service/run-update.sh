@@ -4,8 +4,8 @@ CACHE_DIR=/var/lib/system-update/packages
 OPKG_FLAGS=""
 
 if [ ! -d ${CACHE_DIR} ] ; then
-	echo "NOTE: No updates available. Rebooting now"
-	reboot
+    echo "NOTE: No updates available. Rebooting now"
+    reboot
 fi
 
 echo "NOTE: Starting system update"

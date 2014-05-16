@@ -1,36 +1,35 @@
 {
-	"id":				"org.webosports.service.update",
-	"description":		"Checks for updates, triggers user notification, download and reboot into update state",
-	"engine":			"node",
-	"activityTimeout":	"30",
-	"services":	[
-		{
-			"name":			"org.webosports.service.update",
-			"description":	"Checks for updates, triggers user notification, download and reboot into update state",
-			"golbalized":	false,
-			"commands":	[
-				{
-					"name":			"checkUpdate",
-					"assistant":	"CheckUpdateAssistant",
-					"public":		false
-				},
-				{
-					"name":			"downloadUpdate",
-					"assistant":	"DownloadUpdateAssistant",
-					"subscribe": 	true,
-					"public":		false
-				},
-				{
-					"name":			"initiateUpdate",
-					"assistant":	"InitiateUpdateAssistant",
-					"public":		false
-				},
-				{
-					"name":			"retrieveVersion",
-					"assistant":	"RetrieveVersionAssistant",
-					"public": true
-				}
-			]
-		}
-	]
+    "id":                "org.webosports.service.update",
+    "description":       "Checks for updates, triggers user notification, download and reboot into update state",
+    "engine":            "node",
+    "activityTimeout":   "30",
+    "services": [
+    {
+            "name":        "org.webosports.service.update",
+            "description": "Checks for updates, triggers user notification, download and reboot into update state",
+            "golbalized":  false,
+            "commands": [
+            {
+                "name":      "checkUpdate",
+                "assistant": "CheckUpdateAssistant",
+                "public":    false
+            },
+            {
+                "name":      "downloadUpdate",
+                "assistant": "DownloadUpdateAssistant",
+                "subscribe": true,
+                "public":    false
+            },
+            {
+                "name":      "initiateUpdate",
+                "assistant": "InitiateUpdateAssistant",
+                "public":    false
+            },
+            {
+                "name":      "retrieveVersion",
+                "assistant": "RetrieveVersionAssistant",
+                "public":    true
+            }
+        ]
+    }]
 }
