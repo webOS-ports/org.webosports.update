@@ -77,7 +77,7 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
         if (result.returnValue && result.isInternetConnectionAvailable) {
             future.nest(Utils.checkDirectory(Config.downloadPath));
         } else {
-            handleError("Not online, can't check for updates.");
+            handleError("Not online, can't download updates.");
         }
     });
 
