@@ -75,9 +75,18 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
     future.then(function getStatusCB() {
         var result = Utils.checkResult(future);
         if (result.returnValue && result.isInternetConnectionAvailable) {
-            future.nest(Utils.checkDirectory(Config.downloadPath));
+            future.nest(Utils.checkForSpecificUpdateVersion());
         } else {
             handleError("Not online, can't download updates.");
+        }
+    });
+
+    future.then(function checkForSpecificUpdateVersionCB() {
+        var result = Utils.checkResult(future);
+        if (result.returnValue) {
+            future.nest(Utils.checkDirectory(Config.downloadPath));
+        } else {
+            handleError("Filesystem error: " + result.message);
         }
     });
 

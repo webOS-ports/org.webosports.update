@@ -23,39 +23,125 @@ var Utils = (function () {
         getLocalPlatformVersion: function () {
             var future = new Future();
 
-            fs.readFile(Config.versionFile, function fileReadCallback(err, data) {
-                if (err) {
-                    future.exception = { message: err.message, errorCode: -1 };
-                    //future.result = { returnValue: false, message: err.message };
-                    log("Error while reading version file ( " + Config.versionFile + " ): " + JSON.stringify(err));
+            //first try to read inofficial update file
+            fs.exists(Config.currentVersionFile, function currentVersionFileExists(exists) {
+                future.result = {returnValue: true, currentVersion: exists};
+            });
+
+            future.then(function existsCallback() {
+                var result = Utils.checkResult(future);
+                if (result.currentVersion) {
+                    fs.readFile(Config.versionFile, function fileReadCallback(err, data) {
+                        if (err) {
+                            log("Error while reading current version file ( " + Config.currentVersionFile + "): " + JSON.stringify(err));
+                            future.result = {returnValue: true, currentVersion: 0};
+                        } else {
+                            future.result = {returnValue: true, currentVersion: parseInt(data, 10) };
+                        }
+                    });
                 } else {
-                    var version, dataStr = data.toString(), matches, codename;
-                    log("Got data from file: " + dataStr);
+                    future.result = {returnValue: true, currentVersion: 0};
+                }
+            });
 
-                    matches = Config.parseWholeStringRegExp.exec(dataStr);
-                    //log("parseWholeStringRegExp: " + JSON.stringify(matches));
-                    version = matches && parseInt(matches[Config.parseWholeStringIndex], 10);
-
-                    if (!version && version !== 0) {
-                        log("WARNING: Using parsing callback. Better adjust parseWholeStringRegExp.");
-                        matches = Config.parseOnlyPlattformVersionRegExp.exec(dataStr);
-                        version = matches && parseInt(matches[1], 10); //first match is always the complete string.
-
-                        codename = dataStr.substring(dataStr.lastIndexOf("(") + 1, dataStr.length - 2);
+            future.then(function currentVersionCallback() {
+                var result = Utils.checkResult(future);
+                fs.readFile(Config.versionFile, function fileReadCallback(err, data) {
+                    if (err) {
+                        future.exception = { message: err.message, errorCode: -1 };
+                        //future.result = { returnValue: false, message: err.message };
+                        log("Error while reading version file ( " + Config.versionFile + " ): " + JSON.stringify(err));
                     } else {
-                        codename = matches[Config.parseWholeStringCodenameIndex];
-                    }
+                        var version, dataStr = data.toString(), matches, codename;
+                        log("Got data from file: " + dataStr);
 
-                    if (!version && version !== 0) {
-                        future.exception = { message: "Could not parse version from file: " + dataStr, errorCode: -1};
-                    } else {
-                        if (codename) {
-                            codename = codename.substr(codename.indexOf("-") + 1);
-                            codename = codename[0].toUpperCase() + codename.substr(1); //make sure first char is upper case.
+                        matches = Config.parseWholeStringRegExp.exec(dataStr);
+                        //log("parseWholeStringRegExp: " + JSON.stringify(matches));
+                        version = matches && parseInt(matches[Config.parseWholeStringIndex], 10);
+
+                        if (!version && version !== 0) {
+                            log("WARNING: Using parsing callback. Better adjust parseWholeStringRegExp.");
+                            matches = Config.parseOnlyPlattformVersionRegExp.exec(dataStr);
+                            version = matches && parseInt(matches[1], 10); //first match is always the complete string.
+
+                            codename = dataStr.substring(dataStr.lastIndexOf("(") + 1, dataStr.length - 2);
+                        } else {
+                            codename = matches[Config.parseWholeStringCodenameIndex];
                         }
 
-                        future.result = { returnValue: true, version: version, codename: codename };
+                        if (!version && version !== 0) {
+                            future.exception = { message: "Could not parse version from file: " + dataStr, errorCode: -1};
+                        } else {
+                            if (codename) {
+                                codename = codename.substr(codename.indexOf("-") + 1);
+                                codename = codename[0].toUpperCase() + codename.substr(1); //make sure first char is upper case.
+                            }
+
+                            //return maximum version, either from plattform or currentVersion file
+                            future.result = { returnValue: true, version: Math.max(version, result.currentVersion), codename: codename };
+                        }
                     }
+                });
+            });
+
+            return future;
+        },
+
+        handleUpdateFiles: function (remoteVersion, manifest) {
+            var future = new Future();
+
+            fs.unlink(Config.forceVersionFile, function (err) {
+                if (err) {
+                    log("Could not delete currentVersionFile: " + JSON.stringify(err));
+                }
+                future.result = {returnValue: true};
+            });
+
+            future.then(function deleteForceVersionFileCallback() {
+                var result = Utils.checkResult(future);
+                fs.unlink(Config.potentialForceVersionFile, function (err) {
+                    if (err) {
+                        log("Could not delete potentialForceVersionFile: " + JSON.stringify(err));
+                    }
+                    future.result = {returnValue: true};
+                });
+            });
+
+            future.then(function deletePotentialForceVersionFileCallback() {
+                var result = Utils.checkResult(future);
+                if (remoteVersion > manifest.platformVersion) {
+                    fs.writeFile(Config.potentialForceVersionFile, remoteVersion, function writeCB(err) {
+                        if (err) {
+                            log("Could not write potentialForceVersionFile: " + JSON.stringify(err));
+                            future.result = { returnValue: false };
+                        } else {
+                            future.result = { returnValue: true };
+                        }
+                    });
+                } else {
+                    //no need to write file
+                    future.result = { returnValue: true };
+                }
+            });
+
+            return future;
+        },
+
+        checkForSpecificUpdateVersion: function () {
+            var future = new Future();
+
+            fs.exists(Config.potentialForceVersionFile, function (exists) {
+                if (exists) {
+                    fs.rename(Config.potentialForceVersionFile, Config.forceVersionFile, function renameCB(err) {
+                        if (err) {
+                            log("Could not move potentialForceVersionFile to forceVersionFile: " + JSON.stringify(err));
+                            future.result = {returnValue: false, message: JSON.stringify(err) };
+                        } else {
+                            future.result = {returnValue: true};
+                        }
+                    });
+                } else {
+                    future.result = {returnValue: true};
                 }
             });
 

@@ -7,7 +7,7 @@ var CheckUpdateAssistant = function () {
 
 CheckUpdateAssistant.prototype.run = function (outerFuture) {
     "use strict";
-    var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest;
+    var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest, ignorePlatformVersion = false;
 
     function handleError(msg, error) {
         if (!error) {
@@ -29,10 +29,23 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         var result = Utils.checkResult(future);
         log("Connection status: " + JSON.stringify(result));
         if (result.returnValue && result.isInternetConnectionAvailable) {
-            future.nest(Utils.getLocalPlatformVersion());
+            future.nest(PalmCall.call("palm://com.palm.systemservice/", "getPreferences", {
+                keys: ["updateIgnorePlatformVersion"]
+            }));
+
         } else {
             handleError("Not online, can't check for updates.");
         }
+    });
+
+    future.then(this, function getPrefCallback() {
+        var result = Utils.checkResult(future);
+        if (result.returnValue) {
+            ignorePlatformVersion = result.updateIgnorePlatformVersion;
+        } else {
+            log("Could not get pref, continue with default value");
+        }
+        future.nest(Utils.getLocalPlatformVersion());
     });
 
     future.then(this, function localVersionCallback() {
@@ -48,16 +61,35 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
     });
 
     future.then(this, function manifestCallback() {
-        var result = Utils.checkResult(future), changesSinceLast = [], newResult;
+        var result = Utils.checkResult(future);
         if (result && result.returnValue === true) {
             manifest = result.manifest;
             remoteVersion = manifest.platformVersion;
+
+            if (ignorePlatformVersion) {
+                manifest.changeLog.forEach(function getMaxVersion(entry) {
+                    if (entry.version > remoteVersion) {
+                        remoteVersion = entry.version;
+                    }
+                });
+                log("Read maximum version: ", remoteVersion, " from manifest ", manifest);
+            }
 
             if (!remoteVersion) {
                 handleError("Could not parse remote version from manifest", {message: JSON.stringify(manifest)});
                 return;
             }
 
+            //potentially write update-to-version file.
+            future.nest(Utils.handleUpdateFiles(remoteVersion, manifest));
+        } else {
+            handleError("Could not get manifest", future.exception);
+        }
+    });
+
+    future.then(function handleUpdateFilesCallback() {
+        var result = Utils.checkResult(future), changesSinceLast = [], newResult;
+        if (result.returnValue) {
             log("Remote version came back: " + remoteVersion);
             if (remoteVersion > localVersion) {
                 //get changes since last update:
@@ -92,11 +124,10 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
                 outerFuture.result = newResult;
             } else {
                 //no update necessary.
-                outerFuture.result = { returnValue: true, success: true,  needUpdate: false};
+                outerFuture.result = { returnValue: true, success: true, needUpdate: false};
             }
-
         } else {
-            handleError("Could not get manifest", future.exception);
+            handleError("Something went wrong in the filesystem.", result.message);
         }
     });
 

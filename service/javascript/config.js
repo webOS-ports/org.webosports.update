@@ -15,5 +15,8 @@ var Config = {
     //using script here to get line by line output from download command:
     downloadCommand: {cmd: "script", args: ["-q", "-c", "/usr/palm/services/org.webosports.service.update/download-updates.sh", "/dev/null"]},
     downloadPath: "/media/internal/.upgrade-storage", //used to check if path exists
-    rebootToUpdateModeCommand: {cmd: "script", args: ["-q", "-c", "/usr/palm/services/org.webosports.service.update/start-update.sh", "/dev/null"]}
+    rebootToUpdateModeCommand: {cmd: "script", args: ["-q", "-c", "/usr/palm/services/org.webosports.service.update/start-update.sh", "/dev/null"]},
+    currentVersionFile: "/var/preferences/system-update/current-version",
+    forceVersionFile: "/var/preferences/system-update/update-to-version",
+    potentialForceVersionFile: "/var/preferences/system-update/available-version"
 };
