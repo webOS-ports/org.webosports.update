@@ -77,14 +77,17 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
                     changesSinceLast: changesSinceLast
                 };
 
-                //notify user that we have an update:
-                //TODO: replace with something else that creates a user notification.
-                /*PalmCall.call("palm://com.palm.applicationManager", "launch", {
-                    id: "org.webosports.app.update",
-                    params: newResult
-                }).then(function appManagerCallback(f) {
-                    log("ApplicationManager call came back: " + JSON.stringify(f.result));
-                });*/
+                //notify user that we have an update
+                //first close all old notifications, then create a new one.
+                PalmCall.call("palm://org.webosports.notifications", "closeAllNotifications", {}).then(function () {
+                    PalmCall.call("palm://org.webosports.notifications", "createNotification", {
+                        applicationId: "org.webosports.app.settings",
+                        summary: "Update available",
+                        body: "New version " + remoteVersion
+                    }).then(function appManagerCallback(f) {
+                        log("ApplicationManager call came back: " + JSON.stringify(f.result));
+                    });
+                });
 
                 outerFuture.result = newResult;
             } else {
