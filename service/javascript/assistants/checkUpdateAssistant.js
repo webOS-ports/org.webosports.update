@@ -53,6 +53,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         log("localVersion came back: " + JSON.stringify(result));
         if (result.returnValue === true) {
             localVersion = result.version;
+            log("Have localVersion: " + localVersion);
             future.nest(Utils.getManifest());
         } else {
             log("localVersion came back WITH ERROR: " + JSON.stringify(result));
@@ -72,7 +73,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
                         remoteVersion = entry.version;
                     }
                 });
-                log("Read maximum version: ", remoteVersion, " from manifest ", manifest);
+                log("Read maximum version: " + remoteVersion, " from manifest " + JSON.stringify(manifest));
             }
 
             if (!remoteVersion) {
