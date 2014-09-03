@@ -42,6 +42,11 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         var result = Utils.checkResult(future);
         if (result.returnValue) {
             ignorePlatformVersion = result.updateIgnorePlatformVersion;
+            if (ignorePlatformVersion) {
+                log("Configured to get latest cutting edge version.");
+            } else {
+                log("Using manifest version.");
+            }
         } else {
             log("Could not get pref, continue with default value");
         }
