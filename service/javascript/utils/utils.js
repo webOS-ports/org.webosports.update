@@ -109,18 +109,40 @@ var Utils = (function () {
 
             future.then(function deletePotentialForceVersionFileCallback() {
                 var result = Utils.checkResult(future);
-                if (remoteVersion > manifest.platformVersion) {
-                    fs.writeFile(Config.potentialForceVersionFile, remoteVersion, function writeCB(err) {
-                        if (err) {
-                            log("Could not write potentialForceVersionFile: " + JSON.stringify(err));
-                            future.result = { returnValue: false };
-                        } else {
-                            future.result = { returnValue: true };
-                        }
-                    });
+                fs.exists(Config.preferencesDir, function (exists) {
+                    if (exists) {
+                        future.result = {returnValue: true};
+                    } else {
+                        fs.mkdir(Config.preferencesDir, function (err) {
+                            if (err) {
+                                log("Could not create pref dir: " + JSON.stringify(err));
+                                future.result = { returnValue: false };
+                            } else {
+                                future.result = { returnValue: true };
+                            }
+                        });
+                    }
+                });
+            });
+
+            future.then(function dirCreationCallback() {
+                var result = Utils.checkResult(future);
+                if (result.returnValue) {
+                    if (remoteVersion > manifest.platformVersion) {
+                        fs.writeFile(Config.potentialForceVersionFile, remoteVersion, function writeCB(err) {
+                            if (err) {
+                                log("Could not write potentialForceVersionFile: " + JSON.stringify(err));
+                                future.result = { returnValue: false };
+                            } else {
+                                future.result = { returnValue: true };
+                            }
+                        });
+                    } else {
+                        //no need to write file
+                        future.result = { returnValue: true };
+                    }
                 } else {
-                    //no need to write file
-                    future.result = { returnValue: true };
+                    future.result = result;
                 }
             });
 
