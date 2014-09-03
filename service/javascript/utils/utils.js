@@ -31,7 +31,7 @@ var Utils = (function () {
             future.then(function existsCallback() {
                 var result = Utils.checkResult(future);
                 if (result.currentVersion) {
-                    fs.readFile(Config.versionFile, function fileReadCallback(err, data) {
+                    fs.readFile(Config.currentVersionFile, function fileReadCallback(err, data) {
                         if (err) {
                             log("Error while reading current version file ( " + Config.currentVersionFile + "): " + JSON.stringify(err));
                             future.result = {returnValue: true, currentVersion: 0};
