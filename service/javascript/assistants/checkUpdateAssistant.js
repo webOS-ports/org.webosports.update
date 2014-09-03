@@ -114,9 +114,10 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
                 //first close all old notifications, then create a new one.
                 PalmCall.call("palm://org.webosports.notifications", "closeAllNotifications", {}).then(function () {
                     PalmCall.call("palm://org.webosports.notifications", "createNotification", {
-                        applicationId: "org.webosports.app.settings",
-                        summary: "Update available",
-                        body: "New version " + remoteVersion
+                        launchId: "org.webosports.app.settings",
+                        launchParams: {page: "SystemUpdates", needUpdate: true, changesSinceLast: changesSinceLast },
+                        title: "System update available",
+                        message: "New version " + remoteVersion
                     }).then(function appManagerCallback(f) {
                         log("ApplicationManager call came back: " + JSON.stringify(f.result));
                     });
