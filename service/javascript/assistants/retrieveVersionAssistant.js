@@ -28,7 +28,13 @@ RetrieveVersionAssistant.prototype.run = function (outerFuture) {
     future.then(this, function localVersionCallback() {
         var result = Utils.checkResult(future);
         if (result.returnValue === true) {
-            outerFuture.result = { returnValue: true, localVersion: result.version, codename: result.codename};
+            outerFuture.result = {
+                returnValue: true,
+                localVersion: result.version,
+                codename: result.codename,
+                buildTree: result.buildTree,
+                buildNumber: result.build
+            };
         } else {
             handleError("Could not get local plattform version", result.exception);
         }

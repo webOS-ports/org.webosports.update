@@ -55,12 +55,12 @@ var Utils = (function () {
                         var version, dataStr = data.toString(), matches, codename;
                         log("Got data from file: " + dataStr);
 
-                        matches = Config.parseWholeStringRegExp.exec(dataStr);
+                        matches = Config.parseWholeStringRegExp.exec(dataStr) || [];
                         //log("parseWholeStringRegExp: " + JSON.stringify(matches));
                         version = matches && parseInt(matches[Config.parseWholeStringIndex], 10);
 
                         if (!version && version !== 0) {
-                            log("WARNING: Using parsing callback. Better adjust parseWholeStringRegExp.");
+                            log("WARNING: Using parsing fallback. Better adjust parseWholeStringRegExp.");
                             matches = Config.parseOnlyPlattformVersionRegExp.exec(dataStr);
                             version = matches && parseInt(matches[1], 10); //first match is always the complete string.
 
@@ -78,7 +78,14 @@ var Utils = (function () {
                             }
 
                             //return maximum version, either from plattform or currentVersion file
-                            future.result = { returnValue: true, version: Math.max(version, result.currentVersion), codename: codename };
+                            version = Math.max(version, result.currentVersion);
+                            future.result = {
+                                returnValue: true,
+                                version: version,
+                                codename: codename,
+                                buildTree: matches[Config.parseWholeStringBuildTreeIndex],
+                                build: matches[Config.parseWholeStringBuildIndex]
+                            };
                         }
                     }
                 });
