@@ -57,9 +57,13 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         var result = Utils.checkResult(future);
         log("localVersion came back: " + JSON.stringify(result));
         if (result.returnValue === true) {
-            localVersion = result.version;
-            log("Have localVersion: " + localVersion);
-            future.nest(Utils.getManifest());
+            if (result.buildTree !== "stable") {
+                handleError("No update possible on " + result.buildTree + " build tree.");
+            } else {
+                localVersion = result.version;
+                log("Have localVersion: " + localVersion);
+                future.nest(Utils.getManifest());
+            }
         } else {
             log("localVersion came back WITH ERROR: " + JSON.stringify(result));
             handleError("Could not get local plattform version.", result.exception);
