@@ -34,7 +34,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
             }));
 
         } else {
-            handleError("Not online, can't check for updates.");
+            handleError("No internet connection.");
         }
     });
 

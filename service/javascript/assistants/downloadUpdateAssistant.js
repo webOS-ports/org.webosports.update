@@ -77,7 +77,7 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
         if (result.returnValue && result.isInternetConnectionAvailable) {
             future.nest(Utils.checkForSpecificUpdateVersion());
         } else {
-            handleError("Not online, can't download updates.");
+            handleError("No internet connection.");
         }
     });
 
