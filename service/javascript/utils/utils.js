@@ -225,6 +225,35 @@ var Utils = (function () {
             return future;
         },
 
+        getDeviceName: function () {
+            var future = new Future(), data = "", error = "";
+
+            function outputCB(input) {
+                if (input.type === "out") {
+                    data += input.msg;
+                } else {
+                    error += input.msg;
+                }
+            }
+
+            future.nest(Utils.spawnChild(Config.getDeviceNameCommand, outputCB));
+
+            future.then(function doneCB() {
+                var result = future.result, info;
+
+                try {
+                    info = JSON.stringify(data);
+                    if (info.device_name) {
+                        info.returnValue = true;
+                        future.result = info;
+                    }
+                } catch (e) {
+                    //JSON parsing did not work :(
+                    throw {message: "finished with code " + result.code + ", error messages: " + error};
+                }
+            });
+        },
+
         spawnChild: function (command, outputCallback) {
             var future = new Future(), child;
 
