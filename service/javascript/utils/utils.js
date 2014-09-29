@@ -242,16 +242,21 @@ var Utils = (function () {
                 var result = future.result, info;
 
                 try {
-                    info = JSON.stringify(data);
+                    info = JSON.parse(data);
                     if (info.device_name) {
                         info.returnValue = true;
                         future.result = info;
+                    } else {
+                        throw {message: "No device name in result: " + data};
                     }
                 } catch (e) {
                     //JSON parsing did not work :(
+                    log("JSON parse of " + data + " failed.");
                     throw {message: "finished with code " + result.code + ", error messages: " + error};
                 }
             });
+
+            return future;
         },
 
         spawnChild: function (command, outputCallback) {
