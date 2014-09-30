@@ -108,3 +108,5 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 
     return outerFuture;
 };
+
+module.exports = DownloadUpdateAssistant;

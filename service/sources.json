@@ -6,30 +6,6 @@
         }
     },
     {
-        "source": "javascript/config.js"
-    },
-    {
         "source": "javascript/prologue.js"
-    },
-    {
-        "source": "javascript/assistants/checkUpdateAssistant.js"
-    },
-    {
-        "source": "javascript/assistants/downloadUpdateAssistant.js"
-    },
-    {
-        "source": "javascript/assistants/initiateUpdateAssistant.js"
-    },
-    {
-        "source": "javascript/assistants/retrieveVersionAssistant.js"
-    },
-    {
-        "source": "javascript/utils/activities.js"
-    },
-    {
-        "source": "javascript/utils/parser.js"
-    },
-    {
-        "source": "javascript/utils/utils.js"
     }
 ]

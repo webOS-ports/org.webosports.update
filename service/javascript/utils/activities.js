@@ -85,3 +85,5 @@ var ActivityHelper = (function () {
         }
     };
 }());
+
+module.exports = ActivityHelper;

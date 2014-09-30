@@ -3,7 +3,6 @@
 var Utils = (function () {
     "use strict";
 
-
     //public interface
     return {
         //helper to check result of futures with catching exceptions
@@ -302,3 +301,5 @@ var Utils = (function () {
     };
 
 }());
+
+module.exports = Utils;
