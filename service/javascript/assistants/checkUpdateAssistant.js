@@ -182,3 +182,5 @@ CheckUpdateAssistant.prototype.complete = function (activity) {
     "use strict";
     return ActivityHelper.restartActivity(activity);
 };
+
+module.exports = CheckUpdateAssistant;

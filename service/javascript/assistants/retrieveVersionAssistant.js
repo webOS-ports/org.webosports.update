@@ -42,3 +42,5 @@ RetrieveVersionAssistant.prototype.run = function (outerFuture) {
 
     return outerFuture;
 };
+
+module.exports = RetrieveVersionAssistant;

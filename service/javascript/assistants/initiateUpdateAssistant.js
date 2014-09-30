@@ -31,3 +31,5 @@ InitiateUpdateAssistant.prototype.run = function (outerFuture) {
 
     return outerFuture;
 };
+
+module.exports = InitiateUpdateAssistant;
