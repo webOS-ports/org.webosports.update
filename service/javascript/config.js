@@ -2,7 +2,7 @@
 
 var Config = {
     manifestUrl: "http://build.webos-ports.org/luneos-stable/manifest.json",
-    versionFile: "/etc/webos-release",
+    versionFile: "/etc/luneos-release",
     //regexp to parse webos-release file. Will return:
     //${BUILD_DISTRIB_ID} release ${DISTRO_VERSION}-${BUILD_TREE}-${WEBOS_DISTRO_BUILD_ID} (${WEBOS_DISTRO_RELEASE_CODENAME})
     //where ${WEBOS_DISTRO_BUILD_ID} is ${PLATTFORMVERSION}-${BUILD}
