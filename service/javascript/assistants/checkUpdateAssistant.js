@@ -27,13 +27,12 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 
     future.then(function getStatusCB() {
         var result = Utils.checkResult(future);
-        log("Connection status: " + JSON.stringify(result));
         if (result.returnValue && result.isInternetConnectionAvailable) {
             future.nest(PalmCall.call("palm://com.palm.systemservice/", "getPreferences", {
                 keys: ["updateIgnorePlatformVersion"]
             }));
-
         } else {
+            log("Connection status: " + JSON.stringify(result));
             handleError("No internet connection.");
         }
     });
@@ -44,8 +43,6 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
             ignorePlatformVersion = result.updateIgnorePlatformVersion;
             if (ignorePlatformVersion) {
                 log("Configured to get latest cutting edge version.");
-            } else {
-                log("Using manifest version.");
             }
         } else {
             log("Could not get pref, continue with default value");
