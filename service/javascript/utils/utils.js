@@ -1,3 +1,4 @@
+/*jslint node: true */
 /*global fs, spawn, Future, Config, log, utils, AjaxCall */
 
 var Utils = (function () {

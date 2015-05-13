@@ -33,10 +33,10 @@ console.error("--------->Loaded Libraries OK1");
 
 var log = function (msg) {
     "use strict";
-    console.error(msg);
+    console.log(msg);
 };
 
 var debug = function (msg) {
     "use strict";
-    console.error(msg);
+    //console.error(msg);
 };

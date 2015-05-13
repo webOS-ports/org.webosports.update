@@ -6,6 +6,7 @@ var CheckUpdateAssistant = function () {
 };
 
 CheckUpdateAssistant.prototype.parseManifest = function (manifest, deviceName, ignorePlatformVersion, changes, localVersion) {
+    "use strict";
     var platformVersion = manifest.platformVersion,
         maxVersion = localVersion || -1;
 
@@ -23,7 +24,7 @@ CheckUpdateAssistant.prototype.parseManifest = function (manifest, deviceName, i
             });
 
             if (found) {
-                log("Ignoring version " + entry.version + " for device " + deviceName);
+                debug("Ignoring version " + entry.version + " for device " + deviceName);
                 return;
             }
         }
@@ -39,7 +40,7 @@ CheckUpdateAssistant.prototype.parseManifest = function (manifest, deviceName, i
         return b.version - a.version;
     });
 
-    log("Read maximum version: " + maxVersion, " from manifest " + JSON.stringify(manifest));
+    debug("Read maximum version: " + maxVersion);
     return maxVersion;
 };
 

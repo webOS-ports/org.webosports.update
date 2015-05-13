@@ -1,3 +1,4 @@
+/*jslint node: true */
 /*global Future, log */
 
 var Parser = (function () {

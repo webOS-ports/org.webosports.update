@@ -1,4 +1,4 @@
-/*jslint regexp: true */
+/*jslint regexp: true, node: true */
 
 var Config = {
     manifestUrl: "http://build.webos-ports.org/luneos-stable/manifest.json",
