@@ -199,10 +199,10 @@ var Utils = (function () {
             return future;
         },
 
-        getManifest: function () {
+        getManifest: function (testing) {
             var future = new Future();
 
-            future.nest(AjaxCall.get(Config.manifestUrl));
+            future.nest(AjaxCall.get(testing ? Config.manifestUrlTesting : Config.manifestUrl));
 
             future.then(this, function getCallback() {
                 try {

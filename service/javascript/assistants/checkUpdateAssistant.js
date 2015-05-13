@@ -46,7 +46,7 @@ CheckUpdateAssistant.prototype.parseManifest = function (manifest, deviceName, i
 
 CheckUpdateAssistant.prototype.run = function (outerFuture) {
     "use strict";
-    var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest, ignorePlatformVersion = false, deviceName, changesSinceLast = [];
+    var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest, ignorePlatformVersion = false, deviceName, changesSinceLast = [], testing;
 
     function handleError(msg, error) {
         if (!error) {
@@ -93,12 +93,13 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         var result = Utils.checkResult(future);
         log("localVersion came back: " + JSON.stringify(result));
         if (result.returnValue === true) {
-            if (result.buildTree !== "stable") {
-                handleError("No update possible on " + result.buildTree + " build tree.");
-            } else {
+            if (result.buildTree === "stable" || result.buildTree === "testing") {
                 localVersion = result.version;
                 log("Have localVersion: " + localVersion);
+                testing = result.buildTree === "testing";
                 future.nest(Utils.getDeviceName());
+            } else {
+                handleError("No update possible on " + result.buildTree + " build tree.");
             }
         } else {
             log("localVersion came back WITH ERROR: " + JSON.stringify(result));
@@ -110,7 +111,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         var result = Utils.checkResult(future);
         if (result.returnValue === true) {
             deviceName = result.device_name;
-            future.nest(Utils.getManifest());
+            future.nest(Utils.getManifest(testing));
         } else {
             handleError("Could not get device name", future.exception);
         }
