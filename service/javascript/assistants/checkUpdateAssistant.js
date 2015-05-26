@@ -5,9 +5,48 @@ var CheckUpdateAssistant = function () {
     "use strict";
 };
 
+CheckUpdateAssistant.prototype.parseManifest = function (manifest, deviceName, ignorePlatformVersion, changes, localVersion) {
+    "use strict";
+    var platformVersion = manifest.platformVersion,
+        maxVersion = localVersion || -1;
+
+    manifest.changeLog.forEach(function getMaxVersion(entry) {
+        if (!ignorePlatformVersion && entry.version > platformVersion) {
+            return;
+        }
+
+        if (entry.unsupported_devices) {
+            var found = false;
+            entry.unsupported_devices.forEach(function checkIgnored(device) {
+                if (device === deviceName) {
+                    found = true;
+                }
+            });
+
+            if (found) {
+                debug("Ignoring version " + entry.version + " for device " + deviceName);
+                return;
+            }
+        }
+
+        if (entry.version > maxVersion) {
+            maxVersion = entry.version;
+            changes.push(entry);
+        }
+    });
+
+    //sort changes since last update:
+    changes.sort(function sortFunction(a, b) {
+        return b.version - a.version;
+    });
+
+    debug("Read maximum version: " + maxVersion);
+    return maxVersion;
+};
+
 CheckUpdateAssistant.prototype.run = function (outerFuture) {
     "use strict";
-    var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest, ignorePlatformVersion = false;
+    var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest, ignorePlatformVersion = false, deviceName, changesSinceLast = [], testing;
 
     function handleError(msg, error) {
         if (!error) {
@@ -54,12 +93,13 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         var result = Utils.checkResult(future);
         log("localVersion came back: " + JSON.stringify(result));
         if (result.returnValue === true) {
-            if (result.buildTree !== "stable") {
-                handleError("No update possible on " + result.buildTree + " build tree.");
-            } else {
+            if (result.buildTree === "stable" || result.buildTree === "testing") {
                 localVersion = result.version;
                 log("Have localVersion: " + localVersion);
-                future.nest(Utils.getManifest());
+                testing = result.buildTree === "testing";
+                future.nest(Utils.getDeviceName());
+            } else {
+                handleError("No update possible on " + result.buildTree + " build tree.");
             }
         } else {
             log("localVersion came back WITH ERROR: " + JSON.stringify(result));
@@ -67,20 +107,25 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         }
     });
 
+    future.then(this, function deviceNameCB() {
+        var result = Utils.checkResult(future);
+        if (result.returnValue === true) {
+            deviceName = result.device_name;
+            future.nest(Utils.getManifest(testing));
+        } else {
+            handleError("Could not get device name", future.exception);
+        }
+    });
+
     future.then(this, function manifestCallback() {
         var result = Utils.checkResult(future);
         if (result && result.returnValue === true) {
             manifest = result.manifest;
-            remoteVersion = manifest.platformVersion;
-
-            if (ignorePlatformVersion) {
-                manifest.changeLog.forEach(function getMaxVersion(entry) {
-                    if (entry.version > remoteVersion) {
-                        remoteVersion = entry.version;
-                    }
-                });
-                log("Read maximum version: " + remoteVersion, " from manifest " + JSON.stringify(manifest));
-            }
+            remoteVersion = this.parseManifest(manifest,
+                                               deviceName,
+                                               ignorePlatformVersion,
+                                               changesSinceLast,
+                                               localVersion);
 
             if (!remoteVersion) {
                 handleError("Could not parse remote version from manifest", {message: JSON.stringify(manifest)});
@@ -95,20 +140,10 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
     });
 
     future.then(function handleUpdateFilesCallback() {
-        var result = Utils.checkResult(future), changesSinceLast = [], newResult;
+        var result = Utils.checkResult(future), newResult;
         if (result.returnValue) {
             log("Remote version came back: " + remoteVersion);
             if (remoteVersion > localVersion) {
-                //get changes since last update:
-                manifest.changeLog.forEach(function filterChanges(change) {
-                    if (change.version > localVersion) {
-                        changesSinceLast.push(change);
-                    }
-                });
-                changesSinceLast.sort(function sortFunction(a, b) {
-                    return b.version - a.version;
-                });
-
                 newResult = {
                     returnValue: true,
                     success: true,
@@ -146,3 +181,5 @@ CheckUpdateAssistant.prototype.complete = function (activity) {
     "use strict";
     return ActivityHelper.restartActivity(activity);
 };
+
+module.exports = CheckUpdateAssistant;

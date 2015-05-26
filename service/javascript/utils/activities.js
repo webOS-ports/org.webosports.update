@@ -1,3 +1,4 @@
+/*jslint node: true */
 /*global Future, log, Activity, Config, PalmCall */
 
 var ActivityHelper = (function () {
@@ -85,3 +86,5 @@ var ActivityHelper = (function () {
         }
     };
 }());
+
+module.exports = ActivityHelper;

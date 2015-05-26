@@ -1,8 +1,8 @@
+/*jslint node: true */
 /*global fs, spawn, Future, Config, log, utils, AjaxCall */
 
 var Utils = (function () {
     "use strict";
-
 
     //public interface
     return {
@@ -199,10 +199,10 @@ var Utils = (function () {
             return future;
         },
 
-        getManifest: function () {
+        getManifest: function (testing) {
             var future = new Future();
 
-            future.nest(AjaxCall.get(Config.manifestUrl));
+            future.nest(AjaxCall.get(testing ? Config.manifestUrlTesting : Config.manifestUrl));
 
             future.then(this, function getCallback() {
                 try {
@@ -219,6 +219,40 @@ var Utils = (function () {
                 } catch (e) {
                     log("Could not get manifest: " + JSON.stringify(e));
                     future.exception = e;
+                }
+            });
+
+            return future;
+        },
+
+        getDeviceName: function () {
+            var future = new Future(), data = "", error = "";
+
+            function outputCB(input) {
+                if (input.type === "out") {
+                    data += input.msg;
+                } else {
+                    error += input.msg;
+                }
+            }
+
+            future.nest(Utils.spawnChild(Config.getDeviceNameCommand, outputCB));
+
+            future.then(function doneCB() {
+                var result = future.result, info;
+
+                try {
+                    info = JSON.parse(data);
+                    if (info.device_name) {
+                        info.returnValue = true;
+                        future.result = info;
+                    } else {
+                        throw {message: "No device name in result: " + data};
+                    }
+                } catch (e) {
+                    //JSON parsing did not work :(
+                    log("JSON parse of " + data + " failed.");
+                    throw {message: "finished with code " + result.code + ", error messages: " + error};
                 }
             });
 
@@ -268,3 +302,5 @@ var Utils = (function () {
     };
 
 }());
+
+module.exports = Utils;

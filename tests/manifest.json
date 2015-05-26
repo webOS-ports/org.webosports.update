@@ -1,0 +1,270 @@
+{
+    "manifestVersion": 2,
+    "platformVersion": 24,
+    "changeLog": [
+        { "version": 1, "changes": [] },
+        { "version": 2, "changes": [] },
+        {
+            "version": 3,
+            "changes": [
+                "Updated Luna Next stack",
+                "Added Tweaks application",
+                "Implemenented noWindow support for WebAppMgr",
+                "Added several mobile optimized websites as application (GMail, YouTube, ...)",
+                "Added possiblity to permanently install webOS on a device"
+            ]
+        },
+        {
+            "version": 4,
+            "changes": [
+                "Switch to OE release 1.5 dora",
+                "Fix for nodejs",
+                "Fix for logging without password"
+            ]
+        },
+        {
+            "version": 5,
+            "changes": [
+                "Using maliit as input method",
+                "Using ofono with rilmodem support from cross project (Ubuntu, Mer, webOS ports) effort",
+                "Prelude is back as default font for everything",
+                "System UI and Just Type launcher are back and usable (press power key for some longer time)",
+                "Bug fixes to get Luna Next working on N7",
+                "Bigger gesture area",
+                "Battery status indicator",
+                "Application manager can now launch native applications (try snowshoe in the launcher)"
+            ]
+        },
+        {
+            "version": 6,
+            "changes": [
+                "Use new QML based browser application instead of snowshoe",
+                "Further work to get audio through pulseaudio/alsa working",
+                "WiFi is working again",
+                "Updated settings application with visual changes for the WiFi panel",
+                "Several updates for the Luna Next UI stack"
+            ]
+        },
+        {
+            "version": 7,
+            "changes": [
+                "No window decoration anymore for native qt applications",
+                "Virtual keyboard based on the Ubuntu Touch variant of the Maliit keyboard",
+                "Core applications are only using webos-lib instead of webos-ports-lib and webos-lib",
+                "Updates to the Luna Next UI stack to fix bugs and improve performance"
+            ]
+        },
+        {
+            "version": 8,
+            "changes": [
+                "Rebased on new layers (meta-webos, meta-oe, oe-core)",
+                "Complete rebuild of the whole distribution caused by the rebase"
+            ]
+        },
+        {
+            "version": 9,
+            "changes": [
+                "Rebased on new layers (meta-webos)",
+                "Unified names of build artifacts",
+                "Connman upgraded to 1.20",
+                "qtwebkit no longer depends on MACHINE_ARCH luna-service2"
+            ]
+        },
+        {
+            "version": 10,
+            "changes": [
+                "Signature fixes to share more components between maguro and grouper builds (TUNE_PKGARCH).",
+                "Reworked WiFi part of the system settings application",
+                "Extended support for remote web applications",
+                "Fixed callback issues with PalmServiceBridge implementation",
+                "preware doesn't try to download feeds when no internet connection is available",
+                "Several improvements for the system update service"
+            ]
+        },
+        {
+            "version": 11,
+            "changes": [
+                "luna-service2 is now machine independent which enables us to share a lot more packages between different machines",
+                "System update functionality is now implemented and will enable you to update the system through the UI",
+                "Suspend is working again (still has minor issues but those will be fixed soon)",
+                "Relaunching applications is now possible",
+                "Several meta data cleanups"
+            ]
+        },
+        {
+            "version": 12,
+            "changes": [
+                "Updates for preware, memo and pdf applications",
+                "Kernel is now automatically updated"
+            ]
+        },
+        {
+            "version": 13,
+            "changes": [
+                "Rebuilt from scratch",
+                "Updates for apps",
+                "Recipe cleanup"
+            ]
+        },
+        {
+            "version": 14,
+            "changes": [
+                "Dev mode implementation",
+                "SDL2 support",
+                "More gstreamer plugins added for better multimedia support",
+                "Finally enabling SWAP space on target device (not emulator)",
+                "Various bug fixes for application and cardshell",
+                "Use correct default wallpaper selected in contest again"
+            ]
+        },
+        {
+            "version": 15,
+            "changes": [
+                "Qt 5.2.1 update",
+                "Small update for meta OE layers from upstream",
+                "luna-sysservice changes from upstream",
+                "fix for that libhybris/qtwayland patch issue"
+            ]
+        },
+        {
+            "version": 16,
+            "changes": [
+                "Various improvements for proper suspend handling",
+                "Application menu support added to Luna Next Cardshell",
+                "Improvements for keyboard to support more languages (spell checking and predictive text) and fix a lot of bugs",
+                "Fixed telephony service to not constantly segfault",
+                "Bug fixes and UI improvements for cdav synergy connector",
+                "First feedback sound implementation in new audio service component"
+            ]
+        },
+        {
+            "version": 17,
+            "changes": [
+                "Small update from upstream layers"
+            ]
+        },
+        {
+            "version": 18,
+            "changes": [
+                "Fixed icons for pdf and email apps",
+                "Web applications are now resized when keyboard is visible",
+                "Fixed problems with system update scripts to post installation steps to next boot"
+            ]
+        },
+        {
+            "version": 19,
+            "changes": [
+                "Reimplementation of the keymanager service",
+                "New media indexer service to warrant compatibility with legacy webOS",
+                "Correctly set the application id as application name for luna service calls",
+                "Support more media format (mp3, ...) within gstreamer",
+                "Hardware keyboard control is now working again within the emulator",
+                "Various core app UI improvements to look better on our target devices"
+            ]
+        },
+        {
+            "version": 20,
+            "changes": [
+                "First tweak support within Luna Next Cardshell",
+                "Various UI layout improvements",
+                "Media playback (not hardware accelerated) is working now",
+                "Improved swipe gestures for the Cardshell",
+                "Various bug fixes"
+            ]
+        },
+        {
+            "version": 21,
+            "changes": [
+                "Various bug fixes and application updates"
+            ]
+        },
+        {
+            "version": 22,
+            "changes": [
+                "Major suspend handling rework. Not finished yet and device doesn't reliable sleep yet. Will be finished with the next stage",
+                "C+Dav synergy connector update",
+                "Account service now uses the keymanager for storing credentials again",
+                "Rebased on latest upstream meta-webos which brings various components and security updates (such as for openssl)",
+                "Various component upgrades and bug fixes"
+            ]
+        },
+        {
+            "version": 23,
+            "changes": [
+                "Updates for various system apps",
+                "Initial dashboard support in card shell",
+                "Rewritten contacts application",
+                "Working google contact/calendar sync",
+                "Reworked suspend/resume handing",
+                "Various bug fixes"
+            ]
+        },
+        {
+            "version": 24,
+            "unsupported_devices": [ "maguro", "grouper" ],
+            "changes": [
+                "Switch from OpenEmbedded dora to daisy release as baseline",
+                "Using a central Web application manager component instead of a single launcher",
+                "New browser application developed from scratch in the tradition of the old legacy browser",
+                "Introduction of the new messaging application (no backend integration yet)",
+                "Fixed not working reboot/shutdown",
+                "Improved card stack support (still disabled by default; needs to be enabled via tweaks application)",
+                "App icon reordering for the quick launchbar which is synchronized into db8 for persistence",
+                "Reworked notification API",
+                "Universal search manager now uses https URLs by default for all default search providers",
+                "Media indexer now generates thumbnails for indexed images",
+                "Wallpaper chooser in the settings application now uses the FilePicker component (accesses the media index)",
+                "All logging is now going through the journald system service. /var/log is not used anymore",
+                "Various bug fixes and improvements for the C+DAV synergy connector",
+                "Preware now improved settings and app menu",
+                "Installing updates when running a testing or unstable build is not possible anymore",
+                "Playing audio will not break the audio subsystem anymore",
+                "UTC+0 is now the default timezone of the system if user doesn't set another one",
+                "Developer mode is now correctly handled and available through the Just type application by entering the konami code from legacy webOS",
+                "Various bugs fixed and other improvements to the system",
+                "(Nexus 4) WiFi connection are remember accross a reboot now",
+                "(Touchpad) Allow to install LuneOS on a LVM partition named luneos-root"
+            ]
+        },
+        {
+            "version": 25,
+            "changes": [
+                "Hypothetical future version, ok for maguro, grouper"
+            ]
+        },
+        {
+            "version": 26,
+            "unsupported_devices": [],
+            "changes": [
+                "Hypothetical future version, ok for maguro, grouper"
+            ]
+        },
+        {
+            "version": 27,
+            "unsupported_devices": [ "maguro", "grouper" ],
+            "changes": [
+                "Hypothetical future version"
+            ]
+        },
+        {
+            "version": 28,
+            "unsupported_devices": [ "maguro", "grouper" ],
+            "changes": [
+                "Hypothetical future version"
+            ]
+        },
+        {
+            "version": 29,
+            "changes": [
+                "Hypothetical future version, ok for maguro, grouper"
+            ]
+        },
+        {
+            "version": 30,
+            "unsupported_devices": [ "maguro", "grouper" ],
+            "changes": [
+                "Hypothetical future version"
+            ]
+        }
+    ]
+}

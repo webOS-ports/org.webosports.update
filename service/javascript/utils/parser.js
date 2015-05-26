@@ -1,3 +1,4 @@
+/*jslint node: true */
 /*global Future, log */
 
 var Parser = (function () {
@@ -132,3 +133,5 @@ var Parser = (function () {
     };
 
 }());
+
+module.exports = Parser;
