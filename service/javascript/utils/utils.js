@@ -23,72 +23,46 @@ var Utils = (function () {
         getLocalPlatformVersion: function () {
             var future = new Future();
 
-            //first try to read inofficial update file
-            fs.exists(Config.currentVersionFile, function currentVersionFileExists(exists) {
-                future.result = {returnValue: true, currentVersion: exists};
-            });
-
-            future.then(function existsCallback() {
-                var result = Utils.checkResult(future);
-                if (result.currentVersion) {
-                    fs.readFile(Config.currentVersionFile, function fileReadCallback(err, data) {
-                        if (err) {
-                            log("Error while reading current version file ( " + Config.currentVersionFile + "): " + JSON.stringify(err));
-                            future.result = {returnValue: true, currentVersion: 0};
-                        } else {
-                            future.result = {returnValue: true, currentVersion: parseInt(data, 10) };
-                        }
-                    });
+            fs.readFile(Config.versionFile, function fileReadCallback(err, data) {
+                if (err) {
+                    future.exception = { message: err.message, errorCode: -1 };
+                    //future.result = { returnValue: false, message: err.message };
+                    log("Error while reading version file ( " + Config.versionFile + " ): " + JSON.stringify(err));
                 } else {
-                    future.result = {returnValue: true, currentVersion: 0};
-                }
-            });
+                    var version, dataStr = data.toString(), matches, codename;
+                    log("Got data from file: " + dataStr);
 
-            future.then(function currentVersionCallback() {
-                var result = Utils.checkResult(future);
-                fs.readFile(Config.versionFile, function fileReadCallback(err, data) {
-                    if (err) {
-                        future.exception = { message: err.message, errorCode: -1 };
-                        //future.result = { returnValue: false, message: err.message };
-                        log("Error while reading version file ( " + Config.versionFile + " ): " + JSON.stringify(err));
+                    matches = Config.parseWholeStringRegExp.exec(dataStr) || [];
+                    //log("parseWholeStringRegExp: " + JSON.stringify(matches));
+                    version = matches && parseInt(matches[Config.parseWholeStringIndex], 10);
+
+                    if (!version && version !== 0) {
+                        log("WARNING: Using parsing fallback. Better adjust parseWholeStringRegExp.");
+                        matches = Config.parseOnlyPlattformVersionRegExp.exec(dataStr);
+                        version = matches && parseInt(matches[1], 10); //first match is always the complete string.
+
+                        codename = dataStr.substring(dataStr.lastIndexOf("(") + 1, dataStr.length - 2);
                     } else {
-                        var version, dataStr = data.toString(), matches, codename;
-                        log("Got data from file: " + dataStr);
-
-                        matches = Config.parseWholeStringRegExp.exec(dataStr) || [];
-                        //log("parseWholeStringRegExp: " + JSON.stringify(matches));
-                        version = matches && parseInt(matches[Config.parseWholeStringIndex], 10);
-
-                        if (!version && version !== 0) {
-                            log("WARNING: Using parsing fallback. Better adjust parseWholeStringRegExp.");
-                            matches = Config.parseOnlyPlattformVersionRegExp.exec(dataStr);
-                            version = matches && parseInt(matches[1], 10); //first match is always the complete string.
-
-                            codename = dataStr.substring(dataStr.lastIndexOf("(") + 1, dataStr.length - 2);
-                        } else {
-                            codename = matches[Config.parseWholeStringCodenameIndex];
-                        }
-
-                        if (!version && version !== 0) {
-                            future.exception = { message: "Could not parse version from file: " + dataStr, errorCode: -1};
-                        } else {
-                            if (codename) {
-                                codename = codename.substr(codename.indexOf("-") + 1);
-                                codename = codename[0].toUpperCase() + codename.substr(1); //make sure first char is upper case.
-                            }
-
-                            //return maximum version, either from plattform or currentVersion file
-                            version = Math.max(version, result.currentVersion);
-                            future.result = {
-                                returnValue: true,
-                                version: version,
-                                codename: codename,
-                                buildTree: matches[Config.parseWholeStringBuildTreeIndex],
-                                build: matches[Config.parseWholeStringBuildIndex]
-                            };
-                        }
+                        codename = matches[Config.parseWholeStringCodenameIndex];
                     }
-                });
+
+                    if (!version && version !== 0) {
+                        future.exception = { message: "Could not parse version from file: " + dataStr, errorCode: -1};
+                    } else {
+                        if (codename) {
+                            codename = codename.substr(codename.indexOf("-") + 1);
+                            codename = codename[0].toUpperCase() + codename.substr(1); //make sure first char is upper case.
+                        }
+
+                        future.result = {
+                            returnValue: true,
+                            version: version,
+                            codename: codename,
+                            buildTree: matches[Config.parseWholeStringBuildTreeIndex],
+                            build: matches[Config.parseWholeStringBuildIndex]
+                        };
+                    }
+                }
             });
 
             return future;

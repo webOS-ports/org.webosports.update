@@ -33,7 +33,6 @@ var Config = {
     }
 };
 
-Config.currentVersionFile        = Config.preferencesDir + "current-version";
 Config.forceVersionFile          = Config.preferencesDir + "update-to-version";
 Config.potentialForceVersionFile = Config.preferencesDir + "available-version";
 
