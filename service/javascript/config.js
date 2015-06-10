@@ -1,8 +1,7 @@
 /*jslint regexp: true, node: true */
 
 var Config = {
-    manifestUrl: "http://build.webos-ports.org/luneos-stable/manifest.json",
-    manifestUrlTesting: "http://build.webos-ports.org/luneos-testing/manifest.json",
+    manifestUrlTemplate: "http://build.webos-ports.org/luneos-%%BUILDTREE%%/manifest.json",
     versionFile: "/etc/luneos-release",
     //regexp to parse webos-release file. Will return:
     //${BUILD_DISTRIB_ID} release ${DISTRO_VERSION}-${BUILD_TREE}-${WEBOS_DISTRO_BUILD_ID} (${WEBOS_DISTRO_RELEASE_CODENAME})
@@ -21,7 +20,17 @@ var Config = {
     downloadPath: "/media/internal/.upgrade-storage", //used to check if path exists
     rebootToUpdateModeCommand: {cmd: "script", args: ["-q", "-c", "/usr/palm/services/org.webosports.service.update/start-update.sh", "/dev/null"]},
     preferencesDir: "/var/preferences/system-update/",
-    getDeviceNameCommand: {cmd: "nyx-cmd", args: ["DeviceInfo", "query", "--format=json"] }
+    getDeviceNameCommand: {cmd: "nyx-cmd", args: ["DeviceInfo", "query", "--format=json"] },
+
+
+    getManifestUrl: function (buildtree) {
+        "use strict";
+        if (!buildtree) {
+            buildtree = "stable";
+        }
+        console.log("BUILDING URL with " + buildtree);
+        return Config.manifestUrlTemplate.replace("%%BUILDTREE%%", buildtree);
+    }
 };
 
 Config.currentVersionFile        = Config.preferencesDir + "current-version";

@@ -202,7 +202,7 @@ var Utils = (function () {
         getManifest: function (testing) {
             var future = new Future();
 
-            future.nest(AjaxCall.get(testing ? Config.manifestUrlTesting : Config.manifestUrl));
+            future.nest(AjaxCall.get(Config.getManifestUrl(testing ? "testing" : "stable")));
 
             future.then(this, function getCallback() {
                 try {
