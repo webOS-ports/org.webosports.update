@@ -160,7 +160,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
                         launchParams: {page: "SystemUpdates", needUpdate: true, changesSinceLast: changesSinceLast },
                         title: "System update available",
                         body: "New version " + remoteVersion,
-                        iconUrl: "",
+                        iconUrl: "file:///usr/palm/applications/org.webosports.app.settings/assets/icons/icon-update.png",
                         soundClass: "",
                         soundFile: "",
                         duration: -1,
