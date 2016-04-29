@@ -1,4 +1,4 @@
-/*jslint regexp: true, node: true */
+/*jslint regexp: true, node: true, nomen: true */
 
 var Config = {
     manifestUrlTemplate: "http://build.webos-ports.org/luneos-%%BUILDTREE%%/manifest.json",
@@ -13,30 +13,33 @@ var Config = {
     parseWholeStringBuildIndex: 5,
     parseWholeStringCodenameIndex: 6,
     parseOnlyPlattformVersionRegExp: /.*?-([0-9]+)-.*?/,
-    preDownloadCommand: {cmd: "opkg", args: ["update"] },
-    numPackagesCommand: {cmd: "opkg", args: ["list-upgradable"] },
-    //using script here to get line by line output from download command:
-    downloadCommand: {cmd: "script", args: ["-q", "-c", "/usr/palm/services/org.webosports.service.update/download-updates.sh", "/dev/null"]},
-    downloadPath: "/media/internal/.upgrade-storage", //used to check if path exists
+
+    //download image:
+    downloadPath: "/userdata/luneos-data/system-update.zip",
+    deviceImagesUrlTemplate: "http://build.webos-ports.org/luneos-%%BUILDTREE%%/device-images.json", //a json that contains the urls of the images to download
+
+    //install update
     rebootToUpdateModeCommand: {cmd: "script", args: ["-q", "-c", "/usr/palm/services/org.webosports.service.update/start-update.sh", "/dev/null"]},
-    preferencesDir: "/var/preferences/system-update/",
 
     //misc stuff
     checkUpdateResultsFile: "/tmp/checkUpdateResults.json",
     getDeviceNameCommand: {cmd: "nyx-cmd", args: ["DeviceInfo", "query", "--format=json"] },
 
-
-    getManifestUrl: function (buildtree) {
+    _buildUrl: function (template, buildtree) {
         "use strict";
         if (!buildtree) {
             buildtree = "stable";
         }
-        console.log("BUILDING URL with " + buildtree);
-        return Config.manifestUrlTemplate.replace("%%BUILDTREE%%", buildtree);
+        return template.replace("%%BUILDTREE%%", buildtree);
+    },
+    getManifestUrl: function (buildtree) {
+        "use strict";
+        return Config._buildUrl(Config.manifestUrlTemplate, buildtree);
+    },
+    getDeviceImagesUrl: function (buildtree) {
+        "use strict";
+        return Config._buildUrl(Config.deviceImagesUrlTemplate, buildtree);
     }
 };
-
-Config.forceVersionFile          = Config.preferencesDir + "update-to-version";
-Config.potentialForceVersionFile = Config.preferencesDir + "available-version";
 
 module.exports = Config;

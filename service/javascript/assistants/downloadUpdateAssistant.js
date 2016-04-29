@@ -72,22 +72,17 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
 
     future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getStatus", {subscribe: false}));
 
-    future.then(function getStatusCB() {
+    future.then(function readUpdateResults() {
         var result = Utils.checkResult(future);
-        if (result.returnValue && result.isInternetConnectionAvailable) {
-            future.nest(Utils.checkForSpecificUpdateVersion());
+        if (result.returnValue) {
+            future.nest(Utils.readUpdateResults());
         } else {
             handleError("No internet connection.");
         }
     });
 
-    future.then(function checkForSpecificUpdateVersionCB() {
-        var result = Utils.checkResult(future);
-        if (result.returnValue) {
-            future.nest(Utils.checkDirectory(Config.downloadPath));
-        } else {
-            handleError("Filesystem error: " + result.message);
-        }
+    future.then(function readUpdateResults() {
+
     });
 
     future.then(function pathCB() {
