@@ -68,115 +68,40 @@ var Utils = (function () {
             return future;
         },
 
-        handleUpdateFiles: function (remoteVersion, manifest) {
+        writeUpdateResults: function (updateResults) {
             var future = new Future();
 
-            fs.unlink(Config.forceVersionFile, function (err) {
+            fs.writeFile(Config.checkUpdateResultsFile, JSON.stringify(updateResults), function writeCB(err) {
                 if (err) {
-                    log("Could not delete currentVersionFile: " + JSON.stringify(err));
-                }
-                future.result = {returnValue: true};
-            });
-
-            future.then(function deleteForceVersionFileCallback() {
-                var result = Utils.checkResult(future);
-                fs.unlink(Config.potentialForceVersionFile, function (err) {
-                    if (err) {
-                        log("Could not delete potentialForceVersionFile: " + JSON.stringify(err));
-                    }
-                    future.result = {returnValue: true};
-                });
-            });
-
-            future.then(function deletePotentialForceVersionFileCallback() {
-                var result = Utils.checkResult(future);
-                fs.exists(Config.preferencesDir, function (exists) {
-                    if (exists) {
-                        future.result = {returnValue: true};
-                    } else {
-                        fs.mkdir(Config.preferencesDir, function (err) {
-                            if (err) {
-                                log("Could not create pref dir: " + JSON.stringify(err));
-                                future.result = { returnValue: false };
-                            } else {
-                                future.result = { returnValue: true };
-                            }
-                        });
-                    }
-                });
-            });
-
-            future.then(function dirCreationCallback() {
-                var result = Utils.checkResult(future);
-                if (result.returnValue) {
-                    if (remoteVersion > manifest.platformVersion) {
-                        fs.writeFile(Config.potentialForceVersionFile, remoteVersion, function writeCB(err) {
-                            if (err) {
-                                log("Could not write potentialForceVersionFile: " + JSON.stringify(err));
-                                future.result = { returnValue: false };
-                            } else {
-                                future.result = { returnValue: true };
-                            }
-                        });
-                    } else {
-                        //no need to write file
-                        future.result = { returnValue: true };
-                    }
+                    log("Could not write checkUpdateResultsFile: " + JSON.stringify(err));
+                    future.result = { returnValue: false };
                 } else {
-                    future.result = result;
+                    future.result = { returnValue: true };
                 }
             });
 
             return future;
         },
 
-        checkForSpecificUpdateVersion: function () {
+        readUpdateResults: function () {
             var future = new Future();
 
-            fs.exists(Config.potentialForceVersionFile, function (exists) {
-                if (exists) {
-                    fs.rename(Config.potentialForceVersionFile, Config.forceVersionFile, function renameCB(err) {
-                        if (err) {
-                            log("Could not move potentialForceVersionFile to forceVersionFile: " + JSON.stringify(err));
-                            future.result = {returnValue: false, message: JSON.stringify(err) };
-                        } else {
-                            future.result = {returnValue: true};
-                        }
-                    });
+            fs.readFile(Config.checkUpdateResultsFile, function readCB(err, data) {
+                if (err) {
+                    log("Could not read checkUpdateResultsFile: " + JSON.stringify(err));
+                    future.result = { returnValue: false, error: err };
                 } else {
-                    future.result = {returnValue: true};
+                    future.result = {returnValue: true, results: JSON.parse(data) };
                 }
             });
 
             return future;
         },
 
-        checkDirectory: function (path) {
+        getManifest: function (buildTree) {
             var future = new Future();
 
-            fs.exists(path, function pathCheckCallback(exists) {
-                if (!exists) {
-                    fs.mkdir(Config.downloadPath, function creationCallback(err) {
-                        if (err) {
-                            future.exception = err;
-                        } else {
-                            log("Download directory created.");
-                            future.result = {returnValue: true};
-                        }
-                    });
-                } else {
-                    //directory is there, all fine.
-                    future.result = {returnValue: true};
-                }
-            });
-
-            return future;
-        },
-
-        getManifest: function (testing) {
-            var future = new Future();
-
-            future.nest(AjaxCall.get(Config.getManifestUrl(testing ? "testing" : "stable")));
+            future.nest(AjaxCall.get(Config.getManifestUrl(buildTree)));
 
             future.then(this, function getCallback() {
                 try {

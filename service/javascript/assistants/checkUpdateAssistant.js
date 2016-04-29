@@ -46,7 +46,7 @@ CheckUpdateAssistant.prototype.parseManifest = function (manifest, deviceName, i
 
 CheckUpdateAssistant.prototype.run = function (outerFuture) {
     "use strict";
-    var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest, ignorePlatformVersion = false, deviceName, changesSinceLast = [], testing;
+    var future = new Future(), args = this.controller.args, localVersion, remoteVersion, manifest, ignorePlatformVersion = false, deviceName, changesSinceLast = [], buildTree;
 
     function handleError(msg, error) {
         if (!error) {
@@ -93,14 +93,14 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         var result = Utils.checkResult(future);
         log("localVersion came back: " + JSON.stringify(result));
         if (result.returnValue === true) {
-            if (result.buildTree === "stable" || result.buildTree === "testing") {
-                localVersion = result.version;
-                log("Have localVersion: " + localVersion);
-                testing = result.buildTree === "testing";
-                future.nest(Utils.getDeviceName());
+            if (result.buildTree) {
+                buildTree = result.buildTree;
             } else {
-                handleError("No update possible on " + result.buildTree + " build tree.");
+                buildTree = "stable"; //assume stable buildTree, if none found.
             }
+            localVersion = result.version;
+            log("Have localVersion: " + localVersion + " in tree " + buildTree);
+            future.nest(Utils.getDeviceName());
         } else {
             log("localVersion came back WITH ERROR: " + JSON.stringify(result));
             handleError("Could not get local plattform version.", result.exception);
@@ -111,7 +111,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         var result = Utils.checkResult(future);
         if (result.returnValue === true) {
             deviceName = result.device_name;
-            future.nest(Utils.getManifest(testing));
+            future.nest(Utils.getManifest(buildTree));
         } else {
             handleError("Could not get device name", future.exception);
         }
@@ -133,13 +133,13 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
             }
 
             //potentially write update-to-version file.
-            future.nest(Utils.handleUpdateFiles(remoteVersion, manifest));
+            future.nest(Utils.writeUpdateResults({version: remoteVersion, deviceName: deviceName, buildTree: buildTree}));
         } else {
             handleError("Could not get manifest", future.exception);
         }
     });
 
-    future.then(function handleUpdateFilesCallback() {
+    future.then(function returnResults() {
         var result = Utils.checkResult(future), newResult;
         if (result.returnValue) {
             log("Remote version came back: " + remoteVersion);

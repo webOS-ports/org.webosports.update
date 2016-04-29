@@ -20,6 +20,9 @@ var Config = {
     downloadPath: "/media/internal/.upgrade-storage", //used to check if path exists
     rebootToUpdateModeCommand: {cmd: "script", args: ["-q", "-c", "/usr/palm/services/org.webosports.service.update/start-update.sh", "/dev/null"]},
     preferencesDir: "/var/preferences/system-update/",
+
+    //misc stuff
+    checkUpdateResultsFile: "/tmp/checkUpdateResults.json",
     getDeviceNameCommand: {cmd: "nyx-cmd", args: ["DeviceInfo", "query", "--format=json"] },
 
 
