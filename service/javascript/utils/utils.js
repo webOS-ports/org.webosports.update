@@ -124,6 +124,32 @@ var Utils = (function () {
             return future;
         },
 
+        getDeviceImages: function (buildTree) {
+            var future = new Future();
+
+            future.nest(AjaxCall.get(Config.getDeviceImagesUrl(buildTree)));
+
+            future.then(this, function getCallback() {
+                try {
+                    var result = future.result;
+                    if (result.status === 200) {
+                        if (result.responseJSON) {
+                            future.result = {returnValue: true, deviceImages: result.responseJSON };
+                        } else {
+                            throw {message: "No JSON in response.", errorCode: -1 };
+                        }
+                    } else {
+                        throw {message: "Status code falsy: " + result.status, errorCode: result.status};
+                    }
+                } catch (e) {
+                    log("Could not get manifest: " + JSON.stringify(e));
+                    future.exception = e;
+                }
+            });
+
+            return future;
+        },
+
         getDeviceName: function () {
             var future = new Future(), data = "", error = "";
 

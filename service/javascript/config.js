@@ -15,7 +15,8 @@ var Config = {
     parseOnlyPlattformVersionRegExp: /.*?-([0-9]+)-.*?/,
 
     //download image:
-    downloadPath: "/userdata/luneos-data/system-update.zip",
+    downloadPath: "/userdata/luneos-data/",
+    downloadFilename: "system-update.zip",
     deviceImagesUrlTemplate: "http://build.webos-ports.org/luneos-%%BUILDTREE%%/device-images.json", //a json that contains the urls of the images to download
 
     //install update
