@@ -8,16 +8,14 @@ var DownloadUpdateAssistant = function () {
 DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
     "use strict";
     var future = new Future(),
-        args = this.controller.args,
-        numDownloaded = 0,
-        toDownload = 0,
-        doneUpdating = false,
-        doneGetNumPackages = false;
+        updateData;
 
     //send status to application...
-    function logToApp(numNew) {
-        numDownloaded += numNew;
-        var f, status = { numDownloaded: numDownloaded, toDownload: toDownload };
+    function logToApp(result) {
+        var f, status = { percentage: (100 * result.amountReceived / result.amountTotal).toFixed(2) };
+        if (isNaN(status.percentage)) {
+            return;
+        }
         if (subscription) {
             f = subscription.get();
             f.result = status;
@@ -27,7 +25,7 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
     }
 
     //send errors to application:
-    function handleError(msg, error) {
+    function handleError(msg, error, needCheck) {
         var outMsg = msg;
         if (error) {
             outMsg += ":\n" + (error.message || error.msg) + (error.code ? ("\nErrorCode: " + error.code) : "") + (error.errorCode ? ("\nErrorCode: " + error.errorCode) : "");
@@ -37,74 +35,87 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
             success: false,
             error: true, //tell app we have an error message
             msg: outMsg,
-            errorStage: doneUpdating ? doneGetNumPackages ? "download" : "getNumPackages" : "feedsUpdate"
+            needCheck: !!needCheck
         };
     }
 
-    //handles child process output and termination:
-    function childCallback() {
-        var result = Utils.checkResult(future);
-        if (result.finished && result.error === false) {
-            if (doneGetNumPackages) {
-                log("Download Log:\n" + Parser.getDownloadLog());
-                //we are done:
-                outerFuture.result = {success: true, finished: true, error: false, msg: "Done downloading."};
-            } else if (doneUpdating) {
-                doneGetNumPackages = true;
-                toDownload = Parser.getNumPackages();
-                log("Get num packages: " + toDownload);
-                future.nest(Utils.spawnChild(Config.downloadCommand, Parser.parseDownloadOutput.bind({}, logToApp)));
-                future.then(childCallback);
+    function handleDownloadResults(innerFuture) {
+        var result = Utils.checkResult(innerFuture);
+        debug("Got download result: " + JSON.stringify(result));
+        if (result.returnValue) {
+            if (!result.aborted && !result.completed && !result.interrupted) {
+                //add me again.
+                logToApp(result);
+                debug("Download not yet done, keep waiting.");
+                innerFuture.then(handleDownloadResults);
             } else {
-                //package feed update finished. Go on.
-                doneUpdating = true;
-                log("Update Log:\n" + Parser.getUpdateLog());
-
-                future.nest(Utils.spawnChild(Config.numPackagesCommand, Parser.parseNumPackages));
-                future.then(childCallback);
+                //we are done.
+                debug("Download done, continue future...");
+                future.result = result;
             }
         } else {
-            handleError("Error during " + (doneUpdating ? "downloading packages" : "updating feeds"), result.exception || Parser.getErrorMessage());
+            handleError("Error during download", result.exception);
         }
     }
 
-    Parser.clear();
-
     future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getStatus", {subscribe: false}));
 
-    future.then(function getStatusCB() {
+    future.then(function readUpdateResults() {
         var result = Utils.checkResult(future);
-        if (result.returnValue && result.isInternetConnectionAvailable) {
-            future.nest(Utils.checkForSpecificUpdateVersion());
+        if (result.returnValue) {
+            future.nest(Utils.readUpdateResults());
         } else {
             handleError("No internet connection.");
         }
     });
 
-    future.then(function checkForSpecificUpdateVersionCB() {
+    future.then(function getDeviceImages() {
         var result = Utils.checkResult(future);
         if (result.returnValue) {
-            future.nest(Utils.checkDirectory(Config.downloadPath));
+            updateData = result.results;
+            future.nest(Utils.getDeviceImages(updateData.buildTree));
         } else {
-            handleError("Filesystem error: " + result.message);
+            handleError("No update data stored, check for update first, please.", false, true);
         }
     });
 
-    future.then(function pathCB() {
-        var result = Utils.checkResult(future);
+    future.then(function initiateImageDownload() {
+        var result = Utils.checkResult(future), url;
         if (result.returnValue) {
-            if (args.skipFeedsUpdate) {
-                doneUpdating = true;
-                future.nest(Utils.spawnChild(Config.numPackagesCommand, Parser.parseNumPackages));
+            if (result.deviceImages &&
+                result.deviceImages[updateData.deviceName] &&
+                result.deviceImages[updateData.deviceName][updateData.version]) {
+                url = result.deviceImages[updateData.deviceName][updateData.version].url;
+                debug("Got url: " + url);
+                PalmCall.call("palm://com.palm.downloadmanager", "download", {
+                    target: url,
+                    keepFilenameOnRedirect: true,
+                    targetFilename: Config.downloadFilename,
+                    targetDir: Config.downloadPath,
+                    subscribe: true
+                }).then(handleDownloadResults);
             } else {
-                future.nest(Utils.spawnChild(Config.preDownloadCommand, Parser.parseUpdateOutput));
+                handleError("Device images file corrupt or version not present anymore. Please check for updates again.", false, true);
             }
         } else {
-            handleError("Error during checking/creating download directory", result.exception);
+            handleError("Could not download device images file from server.");
         }
     });
 
-    future.then(childCallback);
+    future.then(function downloadDone() {
+        var result = Utils.checkResult(future);
+        debug("Download done: ", result);
+        if (result.returnValue && result.completed && result.completionStatusCode === 200) {
+            outerFuture.result = {
+                success: true,
+                finished: true,
+                error: false,
+                msg: "Done downloading."
+            };
+        } else {
+            handleError("Error during download", result.exception);
+        }
+    });
 
     return outerFuture;
 };

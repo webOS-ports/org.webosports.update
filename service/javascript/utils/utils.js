@@ -23,186 +23,85 @@ var Utils = (function () {
         getLocalPlatformVersion: function () {
             var future = new Future();
 
-            //first try to read inofficial update file
-            fs.exists(Config.currentVersionFile, function currentVersionFileExists(exists) {
-                future.result = {returnValue: true, currentVersion: exists};
-            });
-
-            future.then(function existsCallback() {
-                var result = Utils.checkResult(future);
-                if (result.currentVersion) {
-                    fs.readFile(Config.currentVersionFile, function fileReadCallback(err, data) {
-                        if (err) {
-                            log("Error while reading current version file ( " + Config.currentVersionFile + "): " + JSON.stringify(err));
-                            future.result = {returnValue: true, currentVersion: 0};
-                        } else {
-                            future.result = {returnValue: true, currentVersion: parseInt(data, 10) };
-                        }
-                    });
-                } else {
-                    future.result = {returnValue: true, currentVersion: 0};
-                }
-            });
-
-            future.then(function currentVersionCallback() {
-                var result = Utils.checkResult(future);
-                fs.readFile(Config.versionFile, function fileReadCallback(err, data) {
-                    if (err) {
-                        future.exception = { message: err.message, errorCode: -1 };
-                        //future.result = { returnValue: false, message: err.message };
-                        log("Error while reading version file ( " + Config.versionFile + " ): " + JSON.stringify(err));
-                    } else {
-                        var version, dataStr = data.toString(), matches, codename;
-                        log("Got data from file: " + dataStr);
-
-                        matches = Config.parseWholeStringRegExp.exec(dataStr) || [];
-                        //log("parseWholeStringRegExp: " + JSON.stringify(matches));
-                        version = matches && parseInt(matches[Config.parseWholeStringIndex], 10);
-
-                        if (!version && version !== 0) {
-                            log("WARNING: Using parsing fallback. Better adjust parseWholeStringRegExp.");
-                            matches = Config.parseOnlyPlattformVersionRegExp.exec(dataStr);
-                            version = matches && parseInt(matches[1], 10); //first match is always the complete string.
-
-                            codename = dataStr.substring(dataStr.lastIndexOf("(") + 1, dataStr.length - 2);
-                        } else {
-                            codename = matches[Config.parseWholeStringCodenameIndex];
-                        }
-
-                        if (!version && version !== 0) {
-                            future.exception = { message: "Could not parse version from file: " + dataStr, errorCode: -1};
-                        } else {
-                            if (codename) {
-                                codename = codename.substr(codename.indexOf("-") + 1);
-                                codename = codename[0].toUpperCase() + codename.substr(1); //make sure first char is upper case.
-                            }
-
-                            //return maximum version, either from plattform or currentVersion file
-                            version = Math.max(version, result.currentVersion);
-                            future.result = {
-                                returnValue: true,
-                                version: version,
-                                codename: codename,
-                                buildTree: matches[Config.parseWholeStringBuildTreeIndex],
-                                build: matches[Config.parseWholeStringBuildIndex]
-                            };
-                        }
-                    }
-                });
-            });
-
-            return future;
-        },
-
-        handleUpdateFiles: function (remoteVersion, manifest) {
-            var future = new Future();
-
-            fs.unlink(Config.forceVersionFile, function (err) {
+            fs.readFile(Config.versionFile, function fileReadCallback(err, data) {
                 if (err) {
-                    log("Could not delete currentVersionFile: " + JSON.stringify(err));
-                }
-                future.result = {returnValue: true};
-            });
+                    future.exception = { message: err.message, errorCode: -1 };
+                    //future.result = { returnValue: false, message: err.message };
+                    log("Error while reading version file ( " + Config.versionFile + " ): " + JSON.stringify(err));
+                } else {
+                    var version, dataStr = data.toString(), matches, codename;
+                    log("Got data from file: " + dataStr);
 
-            future.then(function deleteForceVersionFileCallback() {
-                var result = Utils.checkResult(future);
-                fs.unlink(Config.potentialForceVersionFile, function (err) {
-                    if (err) {
-                        log("Could not delete potentialForceVersionFile: " + JSON.stringify(err));
-                    }
-                    future.result = {returnValue: true};
-                });
-            });
+                    matches = Config.parseWholeStringRegExp.exec(dataStr) || [];
+                    //log("parseWholeStringRegExp: " + JSON.stringify(matches));
+                    version = matches && parseInt(matches[Config.parseWholeStringIndex], 10);
 
-            future.then(function deletePotentialForceVersionFileCallback() {
-                var result = Utils.checkResult(future);
-                fs.exists(Config.preferencesDir, function (exists) {
-                    if (exists) {
-                        future.result = {returnValue: true};
+                    if (!version && version !== 0) {
+                        log("WARNING: Using parsing fallback. Better adjust parseWholeStringRegExp.");
+                        matches = Config.parseOnlyPlattformVersionRegExp.exec(dataStr);
+                        version = matches && parseInt(matches[1], 10); //first match is always the complete string.
+
+                        codename = dataStr.substring(dataStr.lastIndexOf("(") + 1, dataStr.length - 2);
                     } else {
-                        fs.mkdir(Config.preferencesDir, function (err) {
-                            if (err) {
-                                log("Could not create pref dir: " + JSON.stringify(err));
-                                future.result = { returnValue: false };
-                            } else {
-                                future.result = { returnValue: true };
-                            }
-                        });
+                        codename = matches[Config.parseWholeStringCodenameIndex];
                     }
-                });
-            });
 
-            future.then(function dirCreationCallback() {
-                var result = Utils.checkResult(future);
-                if (result.returnValue) {
-                    if (remoteVersion > manifest.platformVersion) {
-                        fs.writeFile(Config.potentialForceVersionFile, remoteVersion, function writeCB(err) {
-                            if (err) {
-                                log("Could not write potentialForceVersionFile: " + JSON.stringify(err));
-                                future.result = { returnValue: false };
-                            } else {
-                                future.result = { returnValue: true };
-                            }
-                        });
+                    if (!version && version !== 0) {
+                        future.exception = { message: "Could not parse version from file: " + dataStr, errorCode: -1};
                     } else {
-                        //no need to write file
-                        future.result = { returnValue: true };
+                        if (codename) {
+                            codename = codename.substr(codename.indexOf("-") + 1);
+                            codename = codename[0].toUpperCase() + codename.substr(1); //make sure first char is upper case.
+                        }
+
+                        future.result = {
+                            returnValue: true,
+                            version: version,
+                            codename: codename,
+                            buildTree: matches[Config.parseWholeStringBuildTreeIndex],
+                            build: matches[Config.parseWholeStringBuildIndex]
+                        };
                     }
-                } else {
-                    future.result = result;
                 }
             });
 
             return future;
         },
 
-        checkForSpecificUpdateVersion: function () {
+        writeUpdateResults: function (updateResults) {
             var future = new Future();
 
-            fs.exists(Config.potentialForceVersionFile, function (exists) {
-                if (exists) {
-                    fs.rename(Config.potentialForceVersionFile, Config.forceVersionFile, function renameCB(err) {
-                        if (err) {
-                            log("Could not move potentialForceVersionFile to forceVersionFile: " + JSON.stringify(err));
-                            future.result = {returnValue: false, message: JSON.stringify(err) };
-                        } else {
-                            future.result = {returnValue: true};
-                        }
-                    });
+            fs.writeFile(Config.checkUpdateResultsFile, JSON.stringify(updateResults), function writeCB(err) {
+                if (err) {
+                    log("Could not write checkUpdateResultsFile: " + JSON.stringify(err));
+                    future.result = { returnValue: false };
                 } else {
-                    future.result = {returnValue: true};
+                    future.result = { returnValue: true };
                 }
             });
 
             return future;
         },
 
-        checkDirectory: function (path) {
+        readUpdateResults: function () {
             var future = new Future();
 
-            fs.exists(path, function pathCheckCallback(exists) {
-                if (!exists) {
-                    fs.mkdir(Config.downloadPath, function creationCallback(err) {
-                        if (err) {
-                            future.exception = err;
-                        } else {
-                            log("Download directory created.");
-                            future.result = {returnValue: true};
-                        }
-                    });
+            fs.readFile(Config.checkUpdateResultsFile, function readCB(err, data) {
+                if (err) {
+                    log("Could not read checkUpdateResultsFile: " + JSON.stringify(err));
+                    future.result = { returnValue: false, error: err };
                 } else {
-                    //directory is there, all fine.
-                    future.result = {returnValue: true};
+                    future.result = {returnValue: true, results: JSON.parse(data) };
                 }
             });
 
             return future;
         },
 
-        getManifest: function (testing) {
+        getManifest: function (buildTree) {
             var future = new Future();
 
-            future.nest(AjaxCall.get(Config.getManifestUrl(testing ? "testing" : "stable")));
+            future.nest(AjaxCall.get(Config.getManifestUrl(buildTree)));
 
             future.then(this, function getCallback() {
                 try {
@@ -210,6 +109,32 @@ var Utils = (function () {
                     if (result.status === 200) {
                         if (result.responseJSON) {
                             future.result = {returnValue: true, manifest: result.responseJSON };
+                        } else {
+                            throw {message: "No JSON in response.", errorCode: -1 };
+                        }
+                    } else {
+                        throw {message: "Status code falsy: " + result.status, errorCode: result.status};
+                    }
+                } catch (e) {
+                    log("Could not get manifest: " + JSON.stringify(e));
+                    future.exception = e;
+                }
+            });
+
+            return future;
+        },
+
+        getDeviceImages: function (buildTree) {
+            var future = new Future();
+
+            future.nest(AjaxCall.get(Config.getDeviceImagesUrl(buildTree)));
+
+            future.then(this, function getCallback() {
+                try {
+                    var result = future.result;
+                    if (result.status === 200) {
+                        if (result.responseJSON) {
+                            future.result = {returnValue: true, deviceImages: result.responseJSON };
                         } else {
                             throw {message: "No JSON in response.", errorCode: -1 };
                         }
