@@ -153,7 +153,7 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 
                 //notify user that we have an update
                 //first close all old notifications, then create a new one.
-                PalmCall.call("palm://org.webosports.notifications", "closeAllNotifications", {}).then(function () {
+                PalmCall.call("palm://org.webosports.notifications", "closeAll", {}).then(function () {
                     PalmCall.call("palm://org.webosports.notifications", "create", {
                         ownerId: "org.webosports.service.update",
                         launchId: "org.webosports.app.settings",
