@@ -28,7 +28,7 @@ var ActivityHelper = (function () {
                     powerDebounce: true
                 },
                 schedule:     { interval: "24h", precise: false },
-                requirements: { internetConfidence: "fair" },
+                requirements: { internet: true },
                 callback:     { method: "palm://org.webosports.update/checkUpdate"}
             };
 
