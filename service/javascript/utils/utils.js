@@ -38,7 +38,7 @@ var Utils = (function () {
 
                     if (!version && version !== 0) {
                         log("WARNING: Using parsing fallback. Better adjust parseWholeStringRegExp.");
-                        matches = Config.parseOnlyPlattformVersionRegExp.exec(dataStr);
+                        matches = Config.parseOnlyPlatformVersionRegExp.exec(dataStr);
                         version = matches && parseInt(matches[1], 10); //first match is always the complete string.
 
                         codename = dataStr.substring(dataStr.lastIndexOf("(") + 1, dataStr.length - 2);
