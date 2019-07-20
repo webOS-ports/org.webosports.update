@@ -5,14 +5,14 @@ var Config = {
     versionFile: "/etc/luneos-release",
     //regexp to parse webos-release file. Will return:
     //${BUILD_DISTRIB_ID} release ${DISTRO_VERSION}-${BUILD_TREE}-${WEBOS_DISTRO_BUILD_ID} (${WEBOS_DISTRO_RELEASE_CODENAME})
-    //where ${WEBOS_DISTRO_BUILD_ID} is ${PLATTFORMVERSION}-${BUILD}
+    //where ${WEBOS_DISTRO_BUILD_ID} is ${PLATFORMVERSION}-${BUILD}
     //and BUILD_TREE is one of stable, testing, unstable.
-    parseWholeStringRegExp: /([0-9\._\-A-Za-z]+) release ([0-9\.]+)-([A-Za-z]+)-([0-9]+)-([0-9]+) \(([0-9a-zA-Z_\-\.]+)\)/,
+    parseWholeStringRegExp: /([0-9\._\-A-Za-z]+) release ([0-9\.]+)-([A-Za-z\/\-0-9]+)-([0-9]+)-([0-9]+) \(([0-9a-zA-Z_\-\.]+)\)/,
     parseWholeStringIndex: 4,
     parseWholeStringBuildTreeIndex: 3,
     parseWholeStringBuildIndex: 5,
     parseWholeStringCodenameIndex: 6,
-    parseOnlyPlattformVersionRegExp: /.*?-([0-9]+)-.*?/,
+    parseOnlyPlatformVersionRegExp: /.*?-([0-9]+)-.*?/,
 
     //download image:
     downloadPath: "/userdata/luneos-data/",
