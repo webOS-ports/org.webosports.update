@@ -1,0 +1,12 @@
+{
+    "appId": "org.webosports.service.update",
+    "allowedNames": ["org.webosports.service.update"],
+    "type": "regular",
+    "permissions": [
+        {
+            "inbound": ["*"],
+            "outbound": ["*"],
+            "service": "org.webosports.service.update"
+        }
+    ]
+}
