@@ -1,6 +1,10 @@
 {
     "org.webosports.service.update": [
         "settings",
-        "system"
+        "system",
+        "activities",
+        "activities.manage",
+        "networking",
+        "networking.internal"
     ]
 }
