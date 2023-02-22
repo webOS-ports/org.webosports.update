@@ -1,17 +1,5 @@
 {
-  "settings": [
-      "org.webosports.service.update/checkUpdate",
-      "org.webosports.service.update/downloadUpdate",
-      "org.webosports.service.update/initiateUpdate",
-      "org.webosports.service.update/retrieveVersion"
-  ],
-  "system": [
-      "org.webosports.service.update/checkUpdate",
-      "org.webosports.service.update/downloadUpdate",
-      "org.webosports.service.update/initiateUpdate",
-      "org.webosports.service.update/retrieveVersion"
-  ],
-  "applications": [
+  "update-service.operation": [
       "org.webosports.service.update/checkUpdate",
       "org.webosports.service.update/downloadUpdate",
       "org.webosports.service.update/initiateUpdate",

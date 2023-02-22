@@ -1,10 +1,10 @@
 {
     "org.webosports.service.update": [
-        "settings",
-        "system",
-        "activities",
-        "activities.manage",
-        "networking",
-        "networking.internal"
+        "activity.operation",
+        "activity.query",
+        "download.management",
+        "networkconnection.query",
+        "systemsettings.query",
+        "update-service.operation"
     ]
 }

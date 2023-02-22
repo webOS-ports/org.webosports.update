@@ -1,6 +1,7 @@
 {
     "appId": "org.webosports.service.update",
     "allowedNames": ["org.webosports.service.update"],
+    "trustLevel": "oem",
     "type": "regular",
     "permissions": [
         {
