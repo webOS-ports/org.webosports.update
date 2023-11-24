@@ -34,7 +34,7 @@ var Utils = (function () {
 
                     matches = Config.parseWholeStringRegExp.exec(dataStr) || [];
                     //log("parseWholeStringRegExp: " + JSON.stringify(matches));
-                    version = matches && matches[Config.parseWholeStringIndex]);
+                    version = matches && matches[Config.parseWholeStringIndex];
 
                     if (!version && version !== 0) {
                         log("WARNING: Using parsing fallback. Better adjust parseWholeStringRegExp.");
