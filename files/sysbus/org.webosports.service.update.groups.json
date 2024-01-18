@@ -1,0 +1,4 @@
+{
+ "allowedNames": ["org.webosports.service.update"],
+ "update-service.operation": ["dev"]
+}
