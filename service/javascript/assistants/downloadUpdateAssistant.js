@@ -58,7 +58,7 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
         }
     }
 
-    future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getStatus", {subscribe: false}));
+    future.nest(PalmCall.call("luna://com.webos.service.connectionmanager", "getStatus", {subscribe: false}));
 
     future.then(function readUpdateResults() {
         var result = Utils.checkResult(future);
@@ -87,7 +87,7 @@ DownloadUpdateAssistant.prototype.run = function (outerFuture, subscription) {
                 result.deviceImages[updateData.deviceName][updateData.version]) {
                 url = result.deviceImages[updateData.deviceName][updateData.version].url;
                 debug("Got url: " + url);
-                PalmCall.call("palm://com.palm.downloadmanager", "download", {
+                PalmCall.call("luna://com.webos.service.downloadmanager", "download", {
                     target: url,
                     keepFilenameOnRedirect: true,
                     targetFilename: Config.downloadFilename,

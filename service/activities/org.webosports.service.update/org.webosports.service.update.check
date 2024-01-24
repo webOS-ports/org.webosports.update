@@ -3,7 +3,7 @@
         "name": "org.webosports.service.update: Periodic Update Check",
         "description": "Periodic system update check",
         "callback": {
-            "method": "palm://org.webosports.service.update/checkUpdate",
+            "method": "luna://org.webosports.service.update/checkUpdate",
             "params": {}
         },
         "requirements" : {

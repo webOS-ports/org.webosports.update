@@ -29,10 +29,10 @@ var ActivityHelper = (function () {
                 },
                 schedule:     { interval: "24h", precise: false },
                 requirements: { internet: true },
-                callback:     { method: "palm://org.webosports.update/checkUpdate"}
+                callback:     { method: "luna://org.webosports.service.update/checkUpdate"}
             };
 
-            future.nest(PalmCall.call("palm://com.palm.activitymanager/", "create", {
+            future.nest(PalmCall.call("luna://com.webos.service.activitymanager/", "create", {
                 activity: activity,
                 replace: true,
                 start: true
@@ -52,7 +52,7 @@ var ActivityHelper = (function () {
 
             //This currently gives bad exceptions and some kind of timeout in OWO. ActivityManager not working??? :(
             log("activityManager => getDetails");
-            future.nest(PalmCall.call("palm://com.palm.activitymanager/", "getDetails", {
+            future.nest(PalmCall.call("luna://com.webos.service.activitymanager/", "getDetails", {
                 activityName: activityName,
                 current: true,
                 internal: true
