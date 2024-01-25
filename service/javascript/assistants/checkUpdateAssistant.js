@@ -62,12 +62,12 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
         outerFuture.result = { returnValue: false, success: false, needUpdate: false, message: msg};
     }
 
-    future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getStatus", {subscribe: false}));
+    future.nest(PalmCall.call("luna://com.webos.service.connectionmanager", "getStatus", {subscribe: false}));
 
     future.then(function getStatusCB() {
         var result = Utils.checkResult(future);
         if (result.returnValue && result.isInternetConnectionAvailable) {
-            future.nest(PalmCall.call("palm://com.palm.systemservice/", "getPreferences", {
+            future.nest(PalmCall.call("luna://com.webos.service.systemservice/", "getPreferences", {
                 keys: ["updateIgnorePlatformVersion"]
             }));
         } else {
@@ -153,19 +153,21 @@ CheckUpdateAssistant.prototype.run = function (outerFuture) {
 
                 //notify user that we have an update
                 //first close all old notifications, then create a new one.
-                PalmCall.call("palm://org.webosports.notifications", "closeAll", {}).then(function () {
-                    PalmCall.call("palm://org.webosports.notifications", "create", {
-                        ownerId: "org.webosports.service.update",
-                        launchId: "org.webosports.app.settings",
-                        launchParams: {page: "SystemUpdates", needUpdate: true, changesSinceLast: changesSinceLast },
+                //closeToast call doesn't seem to work properly, but let's do it anyway for when it gets fixed
+                PalmCall.call("luna://com.webos.notification", "closeToast", {"sourceId":"org.webosports.service.update"}).then(function () {
+                    PalmCall.call("luna://com.webos.notification", "createToast", {
+                        sourceId: "org.webosports.service.update",
+                        onclick: { appId: "org.webosports.app.settings", params: {page: "SystemUpdates", needUpdate: true, changesSinceLast: changesSinceLast } },
                         title: "System update available",
-                        body: "New version " + remoteVersion,
-                        iconUrl: "file:///usr/palm/applications/org.webosports.app.settings/assets/icons/icon-update.png",
-                        soundClass: "",
-                        soundFile: "",
-                        duration: -1,
-                        doNotSuppress: false,
-                        expireTimeout: 5
+                        message: "New version " + remoteVersion,
+                        //According to spec we're only supposed to pass in a 80x80px image, however it seems it works with our 256x256 and it resizes properly.
+                        iconUrl: "/usr/palm/applications/org.webosports.app.settings/assets/icons/icon-update.png",
+                        //Below items are no longer supported for Toasts in OSE, commented them out for now
+                        //soundClass: "",
+                        //soundFile: "",
+                        //duration: -1,
+                        //doNotSuppress: false,
+                        //expireTimeout: 5
                     }).then(function appManagerCallback(f) {
                         log("ApplicationManager call came back: " + JSON.stringify(f.result));
                     });
