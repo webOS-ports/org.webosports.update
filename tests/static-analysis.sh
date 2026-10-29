@@ -1,6 +1,6 @@
 #!/bin/sh
 # Copyright (c) 2026 Herman van Hazendonk
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # jshint over the service and its tests (.jshintrc: Node 22, as the messaging service has it),
 # and shellcheck over the shell scripts.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Copied from luneos-synergy-connectors cloud/_core/service/_cloudcore/node/bus.js at a3139d0, the
  * runtime of the cloud connectors, by way of org.webosports.messaging and
  * com.palm.service.contacts.linker (app-services PR #29); keep them in step. The additions marked

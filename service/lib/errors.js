@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Copied from luneos-synergy-connectors cloud/_core/service/_cloudcore/node/errors.js at a3139d0, the
  * runtime of the cloud connectors; keep the two in step. */
 /* errors.js - the one error type of the node runtime, and the error reply it becomes.

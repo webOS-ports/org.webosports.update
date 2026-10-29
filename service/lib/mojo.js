@@ -1,5 +1,9 @@
 // Copyright (c) 2026 Herman van Hazendonk
-// SPDX-License-Identifier: Apache-2.0
+// Derived from mojoservice, Copyright 2009-2011 Hewlett-Packard Development
+// Company, L.P., and Foundations' comms/palmcall.js and control/activity.js,
+// Copyright (c) 2009-2012 Hewlett-Packard Development Company, L.P., licensed
+// under the Apache License, Version 2.0.
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 'use strict';
 

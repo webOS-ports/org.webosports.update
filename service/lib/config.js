@@ -1,5 +1,8 @@
 // Copyright (c) 2026 Herman van Hazendonk
-// SPDX-License-Identifier: Apache-2.0
+// Derived from the old service's javascript/config.js, Copyright (c) 2013-2016
+// Achim Königs, (c) 2014 Simon Busch, (c) 2019-2023 Herman van Hazendonk,
+// licensed under the Apache License, Version 2.0.
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 'use strict';
 

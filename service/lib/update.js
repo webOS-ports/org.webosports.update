@@ -1,5 +1,10 @@
 // Copyright (c) 2026 Herman van Hazendonk
-// SPDX-License-Identifier: Apache-2.0
+// Derived from the old service's javascript/assistants/*.js, utils/utils.js
+// and utils/activities.js, Copyright (c) 2013-2016 Achim Königs, (c) 2014 Simon
+// Busch, (c) 2015-2024 Herman van Hazendonk, and Foundations' control/future.js,
+// Copyright (c) 2009-2012 Hewlett-Packard Development Company, L.P., licensed
+// under the Apache License, Version 2.0.
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 'use strict';
 

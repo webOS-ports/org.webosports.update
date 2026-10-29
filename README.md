@@ -144,4 +144,28 @@ How it was checked
 Licence
 -------
 
-Apache License 2.0; see COPYING.
+The service is a rewrite, for Node 22, of the one that ran on mojoservice:
+
+ Copyright (c) 2026 Herman van Hazendonk
+
+It is licensed under the GNU General Public License, version 3 or (at your
+option) any later version: see COPYING.
+
+The rewrite follows the old service closely, and the files ported from it
+(service/lib/update.js, config.js and child.js, and tests/logic.test.js) say
+so in their headers, as do lib/mojo.js and lib/http.js for mojoservice and
+Foundations. That code is:
+
+ Copyright (c) 2013-2016 Achim Königs
+ Copyright (c) 2014 Simon Busch
+ Copyright (c) 2015-2024 Herman van Hazendonk
+ Copyright (c) 2009-2012 Hewlett-Packard Development Company, L.P.
+
+(the old service's files carried no copyright line; its holders and years
+are those of the git history), licensed under the Apache License, Version
+2.0 (see LICENSES/Apache-2.0.txt, the old COPYING), which allows it to be
+part of a GPL-3.0 work. The files kept from the old service as they were
+(service/start-update.sh, run-update.sh, download-updates.sh, activities/,
+files/sysbus/ and tests/manifest.json) stay under the Apache License,
+Version 2.0. lib/bus.js and lib/errors.js are copied from
+luneos-synergy-connectors and are GPL-3.0-or-later.

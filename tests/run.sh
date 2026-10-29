@@ -1,6 +1,6 @@
 #!/bin/sh
 # Copyright (c) 2026 Herman van Hazendonk
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # tests/run.sh: the unit tests, then the static analysis.
 #
