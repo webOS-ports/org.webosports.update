@@ -1,0 +1,10 @@
+{
+	"name": "org.webosports.service.update",
+	"version": "1.0.0",
+	"description": "Checks for updates, triggers user notification, download and reboot into update state",
+	"main": "service.js",
+	"private": true,
+	"engines": { "node": ">=22" },
+	"scripts": { "test": "node --test ../tests/*.test.js" },
+	"license": "GPL-3.0-or-later"
+}
