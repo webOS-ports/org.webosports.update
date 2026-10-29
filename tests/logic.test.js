@@ -56,6 +56,11 @@ describe('the release file', () => {
 		assert.deepEqual(parseRelease(config, 'LuneOS-unstable-23-xyz (luneos-foo)\n'),
 			{returnValue: true, version: 23, codename: 'Foo', buildTree: undefined, build: undefined});
 	});
+	it('reads one with nothing after the codename\'s "-" as no codename (B5)', () => {
+		assert.deepEqual(parseRelease(config, 'webOS-ports release 1.0-wrynose-unofficial (luneos-)\n'),
+			{returnValue: true, version: '1.0', codename: '', buildTree: 'wrynose', build: 'unofficial'});
+		assert.equal(parseRelease(config, 'x-5-y (luneos-)\n').codename, '');
+	});
 	it('throws {message, errorCode: -1} on one it cannot read', () => {
 		assert.throws(() => parseRelease(config, 'garbage\n'), {message: 'Could not parse version from file: garbage\n', errorCode: -1});
 	});

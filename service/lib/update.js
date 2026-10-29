@@ -103,8 +103,11 @@ function parseRelease(config, dataStr) {
 	}
 	if (codename) {
 		codename = codename.substr(codename.indexOf('-') + 1);
-		// "" here throws, as it did (README.md, B5).
-		codename = codename[0].toUpperCase() + codename.substr(1);
+		// Nothing after the "-" is no codename; the old code threw on it, in a callback nothing
+		// caught, and the service died (README.md, B5).
+		if (codename) {
+			codename = codename[0].toUpperCase() + codename.substr(1);
+		}
 	}
 	return {
 		returnValue: true,
@@ -126,14 +129,7 @@ function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
 		}
 		const dataStr = data.toString();
 		log.log('Got data from file: ' + dataStr);
-		try {
-			return parseRelease(config, dataStr);
-		} catch (e) {
-			if (e instanceof TypeError) {
-				return crash(e);
-			}
-			throw e;
-		}
+		return parseRelease(config, dataStr);
 	}
 
 	async function writeUpdateResults(results) {

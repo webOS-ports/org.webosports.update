@@ -48,6 +48,14 @@ describe('the update service', () => {
 		env.stop();
 	});
 
+	it('retrieveVersion and checkUpdate on a release file with an empty codename answer (B5)', async () => {
+		const env = await boot({feed: feed(), release: 'webOS-ports release 1.0-wrynose-unofficial (luneos-)\n'});
+		assert.deepEqual(await env.ask('retrieveVersion'),
+			{returnValue: true, localVersion: '1.0', codename: '', buildTree: 'wrynose', buildNumber: 'unofficial'});
+		assert.equal((await env.ask('checkUpdate')).needUpdate, true);
+		env.stop();
+	});
+
 	it('checkUpdate finds a newer version, writes it down for downloadUpdate and shows a toast', async () => {
 		const env = await boot({feed: feed()});
 		const r = await env.ask('checkUpdate');
