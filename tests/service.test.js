@@ -157,6 +157,14 @@ describe('the update service', () => {
 		env.stop();
 	});
 
+	it('downloadUpdate on a results file that is not JSON asks for a check first (B6)', async () => {
+		const env = await boot({feed: feed(), files: {[RESULTS]: '{'}});
+		assert.deepEqual(await env.ask('downloadUpdate', {subscribe: true}), {success: false, error: true,
+			msg: 'No update data stored, check for update first, please.', needCheck: true, returnValue: true});
+		assert.deepEqual(env.requests, []);
+		env.stop();
+	});
+
 	it('downloadUpdate passes on a failed download as PalmCall put it', async () => {
 		const env = await boot({feed: feed(), bus: {'com.webos.service.downloadmanager/download': {returnValue: false, errorCode: 2, errorText: 'no space'}},
 			files: {[RESULTS]: JSON.stringify({version: 26, deviceName: 'qemux86-64', buildTree: 'wrynose'})}});

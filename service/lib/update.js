@@ -34,17 +34,6 @@ async function settle(fn) {
 	}
 }
 
-// A step that ends the chain without an answer: the old code threw where nothing caught it.
-const never = () => new Promise(() => {});
-
-// The old service died here: an exception in a callback nothing caught (README.md, B5, B6).
-function crash(e) {
-	setImmediate(() => {
-		throw e;
-	});
-	return never();
-}
-
 /*
 	parseManifest: the highest version in the manifest's changeLog above
 	localVersion that is for this device, and in changes each entry that
@@ -150,11 +139,13 @@ function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
 			log.log('Could not read checkUpdateResultsFile: ' + JSON.stringify(e));
 			return {returnValue: false, error: e};
 		}
+		// A file that is not JSON is as good as none: check again. The old code's JSON.parse threw in a
+		// callback nothing caught, and the service died (README.md, B6).
 		try {
 			return {returnValue: true, results: JSON.parse(data)};
 		} catch (e) {
-			// README.md, B6.
-			return crash(e);
+			log.log('Could not parse checkUpdateResultsFile: ' + e.message);
+			return {returnValue: false, error: e};
 		}
 	}
 
