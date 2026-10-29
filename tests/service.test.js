@@ -204,12 +204,19 @@ describe('the update service', () => {
 		env.stop();
 	});
 
-	it('the periodic check completes its activity without restart (B2)', async () => {
+	it('the periodic check restarts its activity, so that it runs again (B2)', async () => {
 		const env = await boot({feed: feed()});
-		await env.ask('checkUpdate', {$activity: {activityId: 5, name: PERIODIC}}, AM);
-		const complete = env.callsTo('com.palm.activitymanager', 'complete');
-		assert.deepEqual(complete[0].args, {activityId: 5});
+		await env.ask('checkUpdate', {$activity: {activityId: 5, name: PERIODIC, callback: {serial: 8}}}, AM);
+		assert.deepEqual(env.callsTo('com.palm.activitymanager', 'complete')[0].args, {activityId: 5, restart: true, serial: 8});
+		// Failed or not, the check is run again.
+		const env2 = await boot();
+		await env2.ask('checkUpdate', {$activity: {activityId: 6, name: PERIODIC}}, AM);
+		assert.deepEqual(env2.callsTo('com.palm.activitymanager', 'complete')[0].args, {activityId: 6, restart: true});
+		// Another activity, and the other commands, are completed as they were.
+		await env2.ask('retrieveVersion', {$activity: {activityId: 7, name: PERIODIC}}, AM);
+		assert.deepEqual(env2.callsTo('com.palm.activitymanager', 'complete')[1].args, {activityId: 7});
 		env.stop();
+		env2.stop();
 	});
 
 	it('initiateUpdate that fails answers only when its time is up (B4)', async () => {

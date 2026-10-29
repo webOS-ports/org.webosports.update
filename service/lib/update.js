@@ -416,10 +416,12 @@ function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
 		return {returnValue: false, success: false, needUpdate: false, message: msg};
 	}
 
-	// checkUpdate lets go of its activity as the old assistant's complete() did: it restarts only
-	// an activity named as the periodic one, and an adopted activity is never named so (B2).
-	function completeCheck(activity) {
-		const restart = activity.name === ACTIVITY_NAME;
+	// checkUpdate lets go of its activity as the old assistant's complete() meant to: the periodic
+	// one is restarted, so that activitymanager runs it again after its interval. The old code took
+	// the name from Foundations' Activity, which calls an adopted one "ActivityManager activity<id>",
+	// so it never restarted it (README.md, B2); the name activitymanager sends in $activity is used.
+	function completeCheck(activity, params) {
+		const restart = !!(params && params.$activity && params.$activity.name === ACTIVITY_NAME);
 		log.log('Completing activity ' + activity.name);
 		return activity.complete(restart);
 	}

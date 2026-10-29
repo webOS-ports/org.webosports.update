@@ -242,8 +242,8 @@ function createActivity(palm, log) {
 /*
 	A bus method that answers as mojoservice did. run(params, sub) is the
 	command; sub, for a subscribed call to a method with subscribe:true, sends
-	it a further reply (sub(result)), else it is null. complete(activity), if
-	given, lets go of the activity the call brought (by default
+	it a further reply (sub(result)), else it is null. complete(activity,
+	params), if given, lets go of the activity the call brought (by default
 	activity.complete()); it runs after the reply.
 */
 function command(service, name, run, {palm, timeoutS = DEFAULT_TIMEOUT_S, log = console, subscribe = false, complete} = {}) {
@@ -263,7 +263,7 @@ function command(service, name, run, {palm, timeoutS = DEFAULT_TIMEOUT_S, log = 
 				const a = activity;
 				setImmediate(() => {
 					try {
-						Promise.resolve(complete ? complete(a) : a.complete()).catch(e => {
+						Promise.resolve(complete ? complete(a, params) : a.complete()).catch(e => {
 							log.error(service + ': ' + name + ': complete failed: ' + ((e && e.message) || e));
 						});
 					} catch (e) {
