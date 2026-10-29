@@ -97,6 +97,18 @@ describe('the HTTP GET', () => {
 			assert.equal(b.responseText, 'moved');
 		});
 	});
+	it('decodes a character cut between two chunks (B9)', async () => {
+		const body = Buffer.from('{"changes": ["Zoë: über-fixes"]}', 'utf8');
+		const at = body.indexOf(Buffer.from('ë')) + 1;
+		await serve((req, res) => {
+			res.writeHead(200);
+			res.write(body.subarray(0, at));
+			setTimeout(() => res.end(body.subarray(at)), 20);
+		}, async base => {
+			const r = await createHttp().get(base + '/m');
+			assert.deepEqual(r.responseJSON, {changes: ['Zoë: über-fixes']});
+		});
+	});
 	it('fails as AjaxCall did: no connection, and no answer in time (504)', async () => {
 		const get = createHttp({timeoutMs: 200}).get;
 		const port = await serve(() => {}, async base => {

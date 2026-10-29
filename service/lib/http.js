@@ -77,10 +77,11 @@ function createHttp({timeoutMs = 60000} = {}) {
 			});
 			req.on('response', res => {
 				response = res;
-				// Each chunk is decoded by itself, as AjaxCall did (README.md, B9).
-				let text = '';
+				// The body is decoded once it is all there. AjaxCall decoded each chunk by itself, so a
+				// character cut between two chunks came out as U+FFFD (README.md, B9).
+				const chunks = [];
 				res.on('data', chunk => {
-					text += chunk;
+					chunks.push(chunk);
 				});
 				res.on('error', e => {
 					clearShared();
@@ -88,6 +89,7 @@ function createHttp({timeoutMs = 60000} = {}) {
 				});
 				const done = () => {
 					clearShared();
+					const text = Buffer.concat(chunks).toString('utf8');
 					const result = {status: res.statusCode, responseText: text, headers: res.headers};
 					try {
 						result.responseJSON = JSON.parse(text);
