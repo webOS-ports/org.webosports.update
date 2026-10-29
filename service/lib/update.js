@@ -308,8 +308,9 @@ function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
 			return {success: false, error: true, msg: outMsg, needCheck: !!needCheck};
 		};
 
+		// Online as checkUpdate takes it; the old code went by returnValue alone (README.md, B3).
 		const status = await settle(() => palm.call(CONNECTION_MANAGER, 'getStatus', {subscribe: false}));
-		if (!status.returnValue) {
+		if (!(status.returnValue && status.isInternetConnectionAvailable)) {
 			return fail('No internet connection.');
 		}
 

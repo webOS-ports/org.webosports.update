@@ -226,10 +226,13 @@ describe('the update service', () => {
 		env.stop();
 	});
 
-	it('downloadUpdate goes on without the internet (B3)', async () => {
-		const env = await boot({bus: {'com.webos.service.connectionmanager/getStatus': {returnValue: true, isInternetConnectionAvailable: false}}});
-		const r = await env.ask('downloadUpdate');
-		assert.equal(r.msg, 'No update data stored, check for update first, please.');
+	it('downloadUpdate without the internet says so, and fetches nothing (B3)', async () => {
+		const env = await boot({feed: feed(), bus: {'com.webos.service.connectionmanager/getStatus': {returnValue: true, isInternetConnectionAvailable: false}},
+			files: {[RESULTS]: JSON.stringify({version: 26, deviceName: 'qemux86-64', buildTree: 'wrynose'})}});
+		assert.deepEqual(await env.ask('downloadUpdate'), {success: false, error: true, msg: 'No internet connection.', needCheck: false,
+			returnValue: true});
+		assert.deepEqual(env.requests, []);
+		assert.equal(env.callsTo('com.webos.service.downloadmanager').length, 0);
 		env.stop();
 	});
 });
