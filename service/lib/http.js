@@ -21,29 +21,23 @@ const https = require('https');
 const {err} = require('./mojo');
 
 function createHttp({timeoutMs = 60000} = {}) {
-	// AjaxCall kept one timeout for all its requests: a request starting or ending clears it, so
-	// a request that hangs while another starts or ends is never timed out (README.md, B10).
-	let shared = null;
-	const clearShared = () => {
-		if (shared) {
-			clearTimeout(shared);
-			shared = null;
-		}
-	};
 	function get(url) {
 		return new Promise((resolve, reject) => {
 			let settled = false, response = null;
+			// Each request has its own timeout. AjaxCall kept one for all its requests, which a request
+			// starting or ending cleared, so a request that hung while another started or ended was
+			// never timed out (README.md, B10).
+			let timer = null;
 			const finish = (fn, v) => {
 				if (settled) {
 					return;
 				}
 				settled = true;
+				clearTimeout(timer);
 				fn(v);
 			};
-			clearShared();
-			shared = setTimeout(() => {
+			timer = setTimeout(() => {
 				finish(reject, err(504, 'Timeout received from ajaxCall '));
-				clearShared();
 				if (response) {
 					response.removeAllListeners();
 					response.destroy();
@@ -72,7 +66,6 @@ function createHttp({timeoutMs = 60000} = {}) {
 				return;
 			}
 			req.on('error', e => {
-				clearShared();
 				finish(reject, err(e.errno, 'httpRequest error ' + e.message));
 			});
 			req.on('response', res => {
@@ -84,11 +77,9 @@ function createHttp({timeoutMs = 60000} = {}) {
 					chunks.push(chunk);
 				});
 				res.on('error', e => {
-					clearShared();
 					finish(reject, err(e.errno, 'httpResponse error ' + e.message));
 				});
 				const done = () => {
-					clearShared();
 					const text = Buffer.concat(chunks).toString('utf8');
 					const result = {status: res.statusCode, responseText: text, headers: res.headers};
 					try {

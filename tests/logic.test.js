@@ -109,7 +109,31 @@ describe('the HTTP GET', () => {
 			assert.deepEqual(r.responseJSON, {changes: ['Zoë: über-fixes']});
 		});
 	});
-	it('fails as AjaxCall did: no connection, and no answer in time (504)', async () => {
+	it('times a request out while another one starts and ends (B10)', async () => {
+		await serve((req, res) => {
+			if (req.url === '/quick') {
+				res.writeHead(200);
+				res.end('{}');
+			}
+		}, async base => {
+			const get = createHttp({timeoutMs: 300}).get;
+			const started = Date.now();
+			const hanging = assert.rejects(get(base + '/hang'), {message: 'Timeout received from ajaxCall ', errorCode: 504});
+			await new Promise(r => setTimeout(r, 100));
+			assert.equal((await get(base + '/quick')).status, 200);
+			let guard;
+			const late = new Promise((r, reject) => {
+				guard = setTimeout(() => reject(new Error('the hanging request was not timed out')), 1000);
+			});
+			try {
+				await Promise.race([hanging, late]);
+			} finally {
+				clearTimeout(guard);
+			}
+			assert.ok(Date.now() - started < 1000);
+		});
+	});
+		it('fails as AjaxCall did: no connection, and no answer in time (504)', async () => {
 		const get = createHttp({timeoutMs: 200}).get;
 		const port = await serve(() => {}, async base => {
 			await assert.rejects(get(base + '/hang'), {message: 'Timeout received from ajaxCall ', errorCode: 504});
