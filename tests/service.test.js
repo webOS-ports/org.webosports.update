@@ -219,11 +219,15 @@ describe('the update service', () => {
 		env2.stop();
 	});
 
-	it('initiateUpdate that fails answers only when its time is up (B4)', async () => {
-		const env = await boot({timeoutS: 0.3, commands: {script: {code: 1}}});
-		const r = await env.ask('initiateUpdate');
-		assert.equal(r.errorCode, 504);
+	it('initiateUpdate that fails says so at once (B4)', async () => {
+		const env = await boot({timeoutS: 5, commands: {script: {code: 1}}});
+		const t0 = Date.now();
+		assert.deepEqual(await env.ask('initiateUpdate'), {returnValue: false, success: false, error: true, msg: 'script exited with code 1'});
+		assert.ok(Date.now() - t0 < 2000);
 		env.stop();
+		const env2 = await boot({commands: {script: 'missing'}});
+		assert.deepEqual(await env2.ask('initiateUpdate'), {returnValue: false, success: false, error: true, msg: 'spawn script ENOENT'});
+		env2.stop();
 	});
 
 	it('downloadUpdate without the internet says so, and fetches nothing (B3)', async () => {

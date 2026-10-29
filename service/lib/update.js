@@ -389,10 +389,12 @@ function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
 			log.log('Log initiated reboot sucessfully.');
 			return {success: true, error: false};
 		}
-		log.log('Error during initiating update: ' + JSON.stringify(result.exception));
 		// The old handleError read result.exception.message, which is never there: it threw, and
-		// nothing answered until the command timed out (README.md, B4).
-		return never();
+		// nothing answered until the command timed out (README.md, B4). Its answer is given, with
+		// what went wrong as its message.
+		const msg = result.errorObj ? result.errorObj.message : config.rebootToUpdateModeCommand.cmd + ' exited with code ' + result.code;
+		log.log('Error during initiating update: ' + msg);
+		return {returnValue: false, success: false, error: true, msg};
 	}
 
 	async function retrieveVersion() {
