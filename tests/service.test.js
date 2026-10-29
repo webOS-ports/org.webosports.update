@@ -41,9 +41,9 @@ describe('the update service', () => {
 		env.stop();
 	});
 
-	it('retrieveVersion without a release file says why, with returnValue true (B1)', async () => {
+	it('retrieveVersion without a release file says why, with returnValue false (B1)', async () => {
 		const env = await boot({release: null});
-		assert.deepEqual(await env.ask('retrieveVersion'), {returnValue: true, success: false, needUpdate: false,
+		assert.deepEqual(await env.ask('retrieveVersion'), {returnValue: false, success: false, needUpdate: false,
 			message: 'Could not get local plattform version - ENOENT: no such file or directory, open \'/etc/luneos-release\''});
 		env.stop();
 	});
@@ -90,7 +90,7 @@ describe('the update service', () => {
 		env.stop();
 	});
 
-	it('checkUpdate answers its failures with returnValue true and success false (B1)', async () => {
+	it('checkUpdate answers its failures with returnValue false (B1)', async () => {
 		const cases = [
 			[{bus: {'com.webos.service.connectionmanager/getStatus': {returnValue: true, isInternetConnectionAvailable: false}}},
 				'No internet connection.'],
@@ -105,7 +105,7 @@ describe('the update service', () => {
 		];
 		for (const [opts, message] of cases) {
 			const env = await boot(opts);
-			assert.deepEqual(await env.ask('checkUpdate'), {returnValue: true, success: false, needUpdate: false, message}, message);
+			assert.deepEqual(await env.ask('checkUpdate'), {returnValue: false, success: false, needUpdate: false, message}, message);
 			env.stop();
 		}
 	});

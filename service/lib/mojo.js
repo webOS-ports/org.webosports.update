@@ -7,10 +7,9 @@
 	What mojoservice and Foundations did around the commands, kept as they did
 	it for the service's callers (the Settings app, activitymanager, a shell):
 
-	- a command's result goes out with returnValue:true set on it, whatever
-	  returnValue it had: the commands answer their own failures as
-	  {returnValue:false, success:false, ...}, and mojoservice sent those as
-	  returnValue:true (README.md, B1)
+	- a command's result goes out with returnValue:true set on it, unless it
+	  says returnValue:false: the commands answer their own failures so.
+	  mojoservice sent those with returnValue:true as well (README.md, B1)
 	- a reply to a subscription goes out with returnValue:true and fired:true
 	- an error as {errorText, errorCode, exception, returnValue:false}: with
 	  no errorCode of its own, -9999 and "MojoService: no errorCode
@@ -40,7 +39,7 @@ function fromActivityManager(sender) {
 function reply(result) {
 	const out = result || {};
 	if (typeof out === 'object') {
-		out.returnValue = true;
+		out.returnValue = out.returnValue !== false;
 	}
 	return out;
 }
