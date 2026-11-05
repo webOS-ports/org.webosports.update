@@ -25,7 +25,8 @@ Layout
   - `lib/http.js` (the feed), `lib/child.js` (nyx-cmd, script),
     `lib/config.js` (the old config.js values);
   - `start-update.sh`, `run-update.sh`, `download-updates.sh`: unchanged;
-  - `activities/`: the periodic check, installed in /etc/palm/activities.
+  - `activities/`: the checks after boot and every 12 hours, installed in
+    /etc/palm/activities.
 - `files/sysbus/`: the ACG files, unchanged.
 - `tests/`: unit tests (`node --test tests/*.test.js`), `run.sh` (the tests,
   then `static-analysis.sh`: jshint, shellcheck, a parse of every module).
@@ -54,8 +55,11 @@ What it does
 - `initiateUpdate`: runs start-update.sh (through `script`), which marks the
   next boot as a system update and reboots; run-update.sh does the update in
   that boot.
-- The daily check: activitymanager calls `checkUpdate` (the activity in
-  `service/activities/`, which configurator creates).
+- The checks: activitymanager calls `checkUpdate` once after each boot, as
+  soon as the internet is up, and every 12 hours (the two activities in
+  `service/activities/`, which configurator creates at every boot). The
+  periodic one is restarted after each run; the boot one is not persistent
+  and is completed without restart, so it runs once per boot.
 
 The old service's bugs
 ----------------------

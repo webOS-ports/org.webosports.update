@@ -15,6 +15,7 @@ const {boot, NAME, MANIFEST} = require('./boot');
 
 const AM = {service: 'com.webos.service.activitymanager'};
 const PERIODIC = 'org.webosports.service.update: Periodic Update Check';
+const BOOT = 'org.webosports.service.update: Boot Update Check';
 const SMALL = {manifestVersion: 2, platformVersion: 26, changeLog: [
 	{version: 24, changes: ['a']}, {version: 25, changes: ['b'], unsupported_devices: ['mako']}, {version: 26, changes: ['c']}]};
 const IMAGES = {'qemux86-64': {26: {url: 'http://images.example/qemux86-64-26.zip'}}};
@@ -233,6 +234,13 @@ describe('the update service', () => {
 		assert.deepEqual(env2.callsTo('com.palm.activitymanager', 'complete')[1].args, {activityId: 7});
 		env.stop();
 		env2.stop();
+	});
+
+	it('the boot check is completed without restart, so that it runs once', async () => {
+		const env = await boot({feed: feed()});
+		await env.ask('checkUpdate', {$activity: {activityId: 4, name: BOOT, callback: {serial: 3}}}, AM);
+		assert.deepEqual(env.callsTo('com.palm.activitymanager', 'complete')[0].args, {activityId: 4, serial: 3});
+		env.stop();
 	});
 
 	it('initiateUpdate that fails says so at once (B4)', async () => {
