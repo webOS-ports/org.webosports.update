@@ -48,6 +48,19 @@ describe('parseManifest (the old tests/manifest-parsing.js)', () => {
 	});
 });
 
+describe('the feed', () => {
+	const config = createConfig();
+	// The manifest says whether to update and device-images.json where the image is: fetched in the
+	// clear, anyone on the path could offer any image as the update.
+	it('is fetched over HTTPS from feeds.luneos.org, per build tree', () => {
+		assert.equal(config.getManifestUrl('testing'), 'https://feeds.luneos.org/luneos-testing/manifest.json');
+		assert.equal(config.getDeviceImagesUrl('testing'), 'https://feeds.luneos.org/luneos-testing/device-images.json');
+	});
+	it('is the stable tree\'s when the release file names none', () => {
+		assert.equal(config.getManifestUrl(undefined), 'https://feeds.luneos.org/luneos-stable/manifest.json');
+	});
+});
+
 describe('the release file', () => {
 	const config = createConfig();
 	it('reads the VM\'s', () => {

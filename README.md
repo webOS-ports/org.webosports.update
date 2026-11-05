@@ -42,7 +42,7 @@ What it does
 - `checkUpdate`: asks connectionmanager whether the internet is there, reads
   the systemservice preference `updateIgnorePlatformVersion`, the release
   file and the device name (`nyx-cmd DeviceInfo query`), fetches
-  `http://build.webos-ports.org/luneos-<tree>/manifest.json` and takes the
+  `https://feeds.luneos.org/luneos-<tree>/manifest.json` and takes the
   highest version in its changeLog that is for this device (and not above
   the manifest's platformVersion, unless the preference says so). It writes
   what it found to /tmp/checkUpdateResults.json, and when that is newer than
