@@ -395,25 +395,26 @@ function createUpdate({palm, config, http, child, fs = fsp, hashFile = sha256Fil
 				if (finished) {
 					return;
 				}
-				const one = e ? {returnValue: false, exception: e} : r;
-				if (one.returnValue) {
-					if (!one.aborted && !one.completed && !one.interrupted) {
-						logToApp(one);
-						return;
-					}
+				// A failed reply comes as e (lib/mojo.js, failed()). The downloadmanager's progress and
+				// completion messages carry no returnValue, so its absence is no failure.
+				if (e) {
 					finished = true;
-					resolve({done: one});
+					resolve({stop: fail('Error during download', e)});
+					return;
+				}
+				if (!r.aborted && !r.completed && !r.interrupted) {
+					logToApp(r);
 					return;
 				}
 				finished = true;
-				resolve({stop: fail('Error during download', one.exception)});
+				resolve({done: r});
 			});
 		});
 		if (result.stop) {
 			return result.stop;
 		}
 		const r = result.done;
-		if (r.returnValue && r.completed && r.completionStatusCode === 200) {
+		if (r.completed && r.completionStatusCode === 200) {
 			// Where the downloadmanager put it: it adds a number to the name when the file is there
 			// already.
 			const file = typeof r.target === 'string' && r.target ? r.target : path.join(config.downloadPath, config.downloadFilename);

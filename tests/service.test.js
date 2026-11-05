@@ -156,6 +156,28 @@ describe('the update service', () => {
 		env.stop();
 	});
 
+	it('downloadUpdate takes the downloadmanager\'s replies as the Sargo sends them, with no returnValue after the first', async () => {
+		// luna-send to com.webos.service.downloadmanager/download on the Sargo, 2026-11-05 (some fields left out).
+		const sargo = [
+			{url: IMAGES['qemux86-64'][26].url, returnValue: true, ticket: 8, target: IMAGE_FILE, subscribed: true},
+			{ticket: 8, amountReceived: 15, e_amountReceived: '15', amountTotal: 30, e_amountTotal: '30'},
+			{sourceUrl: IMAGES['qemux86-64'][26].url, completed: true, target: IMAGE_FILE, interrupted: false, httpStatus: 200,
+				amountTotal: 30, destPath: '/userdata/luneos-data/', aborted: false, destFile: 'system-update.zip', ticket: 8,
+				completionStatusCode: 200, amountReceived: 30}
+		];
+		const env = await boot({feed: feed(), bus: {'com.webos.service.downloadmanager/download': sargo},
+			files: {[RESULTS]: STORED, [IMAGE_FILE]: 'IMAGE'}});
+		const r = env.send('downloadUpdate', {subscribe: true});
+		await r.first;
+		await env.settle();
+		assert.deepEqual(r.replies, [
+			{percentage: '50.00', returnValue: true, fired: true},
+			{success: true, finished: true, error: false, msg: 'Done downloading.', returnValue: true}
+		]);
+		env.cancel(r.token);
+		env.stop();
+	});
+
 	it('downloadUpdate fetches only an image with an https URL and a SHA-256', async () => {
 		const entries = [
 			{url: 'http://images.example/qemux86-64-26.zip', sha256: IMAGE_SHA256},
