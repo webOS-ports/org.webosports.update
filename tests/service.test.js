@@ -66,8 +66,8 @@ describe('the update service', () => {
 		const toasts = env.callsTo('com.webos.notification');
 		assert.deepEqual(toasts.map(c => c.method), ['closeToast', 'createToast']);
 		assert.equal(toasts[1].args.message, 'New version 26');
-		assert.deepEqual(toasts[1].args.onclick, {appId: 'org.webosports.app.settings',
-			params: {page: 'SystemUpdates', needUpdate: true, changesSinceLast: r.changesSinceLast}});
+		assert.deepEqual(toasts[1].args.onclick, {appId: 'org.webosports.app.settings.updates',
+			params: {needUpdate: true, changesSinceLast: r.changesSinceLast}});
 		env.stop();
 	});
 

@@ -104,8 +104,9 @@ mend those marked fixed, one each.
   a string ("1.0") and compares with a number as a number, but two strings
   ("10" and "9") compare as text. The feed's manifest has numbers, as far as
   tests/manifest.json shows; kept.
-- B12 The toast opens the Settings app with `page: "SystemUpdates"`; the QML
-  Settings app has no such page. Not this service's to change.
+- B12 (fixed) The toast opened the Enyo Settings app with `page:
+  "SystemUpdates"`, an app no image has any more. It opens the QML Settings
+  app's System Updates page, `org.webosports.app.settings.updates`.
 - B13 checkUpdate writes /tmp/checkUpdateResults.json also when there is no
   update (with the local version). Harmless; kept.
 

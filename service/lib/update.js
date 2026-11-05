@@ -27,8 +27,11 @@ const CONNECTION_MANAGER = 'luna://com.webos.service.connectionmanager';
 const SYSTEM_SERVICE = 'luna://com.webos.service.systemservice/';
 const NOTIFICATION = 'luna://com.webos.notification';
 const DOWNLOAD_MANAGER = 'luna://com.webos.service.downloadmanager';
-const SETTINGS_APP = 'org.webosports.app.settings';
-const ICON = '/usr/palm/applications/org.webosports.app.settings/assets/icons/icon-update.png';
+// The QML Settings app's System Updates page: each category of that app is an application of its
+// own. The Enyo app this used to open (org.webosports.app.settings, page "SystemUpdates") is in no
+// image any more.
+const SETTINGS_APP = 'org.webosports.app.settings.updates';
+const ICON = '/usr/palm/applications/org.webosports.app.settings.updates/qml/images/icons/icon-updates.png';
 
 // What a step that threw hands to the next: Utils.checkResult's {returnValue:false, exception}.
 async function settle(fn) {
@@ -265,7 +268,7 @@ function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
 		palm.call(NOTIFICATION, 'closeToast', {sourceId: SERVICE}).catch(() => {}).then(() => {
 			return palm.call(NOTIFICATION, 'createToast', {
 				sourceId: SERVICE,
-				onclick: {appId: SETTINGS_APP, params: {page: 'SystemUpdates', needUpdate: true, changesSinceLast}},
+				onclick: {appId: SETTINGS_APP, params: {needUpdate: true, changesSinceLast}},
 				title: 'System update available',
 				message: 'New version ' + remoteVersion,
 				iconUrl: ICON
