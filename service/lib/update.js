@@ -21,6 +21,38 @@
 
 const fsp = require('fs').promises;
 const path = require('path');
+const crypto = require('crypto');
+const fsModule = require('fs');
+
+// The SHA-256 of a file, read as a stream (an image is hundreds of megabytes): hex, lower case.
+function sha256File(file) {
+	return new Promise((resolve, reject) => {
+		const hash = crypto.createHash('sha256');
+		fsModule.createReadStream(file)
+			.on('error', reject)
+			.on('data', chunk => hash.update(chunk))
+			.on('end', () => resolve(hash.digest('hex')));
+	});
+}
+
+/*
+	An image entry of device-images.json, {url, sha256}, that may be fetched:
+	the URL https, so that what is fetched is what the feed's host sent, and a
+	SHA-256 to hold the file to once it is here. Without the hash, anyone who
+	could answer for the image's host, or a redirect from it (the
+	downloadmanager follows them, to http too), would choose what the device
+	installs.
+*/
+function checkImage(entry) {
+	if (!entry || typeof entry.url !== 'string' || typeof entry.sha256 !== 'string' || !/^[0-9a-fA-F]{64}$/.test(entry.sha256)) {
+		return false;
+	}
+	try {
+		return new URL(entry.url).protocol === 'https:';
+	} catch (e) {
+		return false;
+	}
+}
 
 const SERVICE = 'org.webosports.service.update';
 const ACTIVITY_NAME = 'org.webosports.service.update: Periodic Update Check';
@@ -116,7 +148,7 @@ function parseRelease(config, dataStr) {
 	};
 }
 
-function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
+function createUpdate({palm, config, http, child, fs = fsp, hashFile = sha256File, log = console}) {
 	async function localVersion() {
 		let data;
 		try {
@@ -325,14 +357,19 @@ function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
 		if (images.stop) {
 			return images.stop;
 		}
-		let url;
+		let url, sha256;
 		const step = await settle(() => {
 			if (!images.returnValue) {
 				return {stop: fail('Could not download device images file from server.')};
 			}
 			const di = images.deviceImages;
 			if (di && di[updateData.deviceName] && di[updateData.deviceName][updateData.version]) {
-				url = di[updateData.deviceName][updateData.version].url;
+				const entry = di[updateData.deviceName][updateData.version];
+				if (!checkImage(entry)) {
+					return {stop: fail('The update server gives no https URL and SHA-256 for this image; it is not downloaded.')};
+				}
+				url = entry.url;
+				sha256 = entry.sha256.toLowerCase();
 				log.log('Got url: ' + url);
 				return {go: true};
 			}
@@ -377,6 +414,24 @@ function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
 		}
 		const r = result.done;
 		if (r.returnValue && r.completed && r.completionStatusCode === 200) {
+			// Where the downloadmanager put it: it adds a number to the name when the file is there
+			// already.
+			const file = typeof r.target === 'string' && r.target ? r.target : path.join(config.downloadPath, config.downloadFilename);
+			let got;
+			try {
+				got = await hashFile(file);
+			} catch (e) {
+				return fail('Could not read the downloaded update', e);
+			}
+			if (got !== sha256) {
+				log.log('SHA-256 of ' + file + ' is ' + got + ', the feed says ' + sha256);
+				try {
+					await fs.unlink(file);
+				} catch (e) {
+					log.log('Could not remove ' + file + ': ' + JSON.stringify(e));
+				}
+				return fail('The downloaded update is not the one the update server lists (SHA-256 differs); it was removed.');
+			}
 			return {success: true, finished: true, error: false, msg: 'Done downloading.'};
 		}
 		return fail('Error during download', r.exception);
@@ -431,4 +486,4 @@ function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
 	return {checkUpdate, downloadUpdate, initiateUpdate, retrieveVersion, completeCheck};
 }
 
-module.exports = {createUpdate, parseManifest, parseRelease, SERVICE, ACTIVITY_NAME};
+module.exports = {createUpdate, parseManifest, parseRelease, checkImage, sha256File, SERVICE, ACTIVITY_NAME};

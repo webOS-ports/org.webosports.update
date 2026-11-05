@@ -50,8 +50,10 @@ What it does
   the local version answers `needUpdate: true` with the changes, and shows a
   toast that opens the Settings app.
 - `downloadUpdate` (a subscriber gets the percentage done): looks up the
-  image for that device and version in the feed's device-images.json and has
-  downloadmanager fetch it to /userdata/luneos-data/system-update.zip.
+  image for that device and version in the feed's device-images.json
+  (`{"<device>": {"<version>": {"url": "https://...", "sha256": "<hex>"}}}`),
+  has downloadmanager fetch it to /userdata/luneos-data/system-update.zip and
+  checks its SHA-256 (H3).
 - `initiateUpdate`: runs start-update.sh (through `script`), which marks the
   next boot as a system update and reboots; run-update.sh does the update in
   that boot.
@@ -130,6 +132,18 @@ service should. Changed, one commit each:
   directory anyone may write to, any user could put the file there before the
   service did, and so choose which device and feed downloadUpdate fetches
   for, or make it a link for root to write through.
+- H3 downloadUpdate fetches an image only when its device-images.json entry
+  has an https `url` and a `sha256` (64 hex digits), and holds the file to
+  that hash once it is down; one that differs is removed, and the answer says
+  so. The entry was `{url}` alone, of any scheme the downloadmanager takes
+  (http, ftp), and the downloadmanager follows redirects, to http too:
+  whoever could answer for the image's host chose what the device installed.
+  The hash ties the image to device-images.json, which comes over https from
+  the feed.
+
+The feed itself, the manifest and device-images.json are not signed yet:
+whoever can write to the feed's bucket decides what devices install. That
+is the next step, with the key held by the CI that builds the feed.
 
 Deliberately different from the old service
 -------------------------------------------

@@ -13,6 +13,7 @@
 
 const http = require('http');
 const path = require('path');
+const crypto = require('crypto');
 const {EventEmitter} = require('events');
 const {createPalmbus} = require('./palmbus');
 
@@ -28,6 +29,8 @@ const quiet = {log() {}, warn() {}, error() {}, info() {}};
 	modes: {<path>: {mode}} and {<path>: mode}, what mkdir and writeFile were
 	asked for.
 */
+const sha256 = async data => crypto.createHash('sha256').update(await data).digest('hex');
+
 function memoryFs(files, dirs = {}, modes = {}) {
 	Object.keys(files).forEach(p => {
 		for (let d = path.dirname(p); d !== path.dirname(d); d = path.dirname(d)) {
@@ -49,6 +52,12 @@ function memoryFs(files, dirs = {}, modes = {}) {
 			}
 			files[p] = String(data);
 			modes[p] = options && options.mode;
+		},
+		unlink: async p => {
+			if (!Object.prototype.hasOwnProperty.call(files, p)) {
+				throw enoent(p);
+			}
+			delete files[p];
 		},
 		// Only {recursive: true}, as the service makes its directory. A path with /nodir/ cannot be made.
 		mkdir: async (p, options) => {
@@ -176,7 +185,8 @@ async function boot({bus = {}, release = VM_RELEASE, files = {}, commands = {}, 
 		httpTimeoutMs
 	}, extra);
 	const service = start({palmbus: pb, idleMs: 0, log: quiet, exit() {}, timeoutS, config,
-		fs: memoryFs(fsFiles, fsDirs, fsModes), spawn: fakeSpawn(Object.assign({'nyx-cmd': {out: '{"device_name": "qemux86-64"}\n'}}, commands), runs)});
+		fs: memoryFs(fsFiles, fsDirs, fsModes),
+		hashFile: async p => sha256(memoryFs(fsFiles).readFile(p)), spawn: fakeSpawn(Object.assign({'nyx-cmd': {out: '{"device_name": "qemux86-64"}\n'}}, commands), runs)});
 
 	async function settle(ms = 30) {
 		for (;;) {
@@ -212,4 +222,4 @@ async function boot({bus = {}, release = VM_RELEASE, files = {}, commands = {}, 
 	};
 }
 
-module.exports = {boot, NAME, VM_RELEASE, MANIFEST, quiet, memoryFs, fakeSpawn};
+module.exports = {boot, NAME, VM_RELEASE, MANIFEST, quiet, memoryFs, fakeSpawn, sha256};

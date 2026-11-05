@@ -190,3 +190,15 @@ describe('the HTTP GET', () => {
 			e => /^httpRequest error connect ECONNREFUSED/.test(e.message) && e.errorCode === -111);
 	});
 });
+
+describe('the image hash', () => {
+	const {sha256File} = require('../service/lib/update');
+	it('is the SHA-256 of the whole file, in lower-case hex', async () => {
+		const file = require('path').join(__dirname, 'manifest.json');
+		const want = require('crypto').createHash('sha256').update(require('fs').readFileSync(file)).digest('hex');
+		assert.equal(await sha256File(file), want);
+	});
+	it('fails on a file that is not there', async () => {
+		await assert.rejects(sha256File(require('path').join(__dirname, 'no-such-file')), {code: 'ENOENT'});
+	});
+});
