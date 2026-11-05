@@ -140,6 +140,10 @@ service should. Changed, one commit each:
   whoever could answer for the image's host chose what the device installed.
   The hash ties the image to device-images.json, which comes over https from
   the feed.
+- H4 The service's group, update-service.operation, needs oem trust: the
+  Settings app's pages, activitymanager and the system's services. It was
+  "dev", the lowest, which any app or service given the group has, signed or
+  not, and the group lets a caller reboot the device into an update.
 
 The feed itself, the manifest and device-images.json are not signed yet:
 whoever can write to the feed's bucket decides what devices install. That
