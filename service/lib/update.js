@@ -20,6 +20,7 @@
 */
 
 const fsp = require('fs').promises;
+const path = require('path');
 
 const SERVICE = 'org.webosports.service.update';
 const ACTIVITY_NAME = 'org.webosports.service.update: Periodic Update Check';
@@ -131,7 +132,10 @@ function createUpdate({palm, config, http, child, fs = fsp, log = console}) {
 
 	async function writeUpdateResults(results) {
 		try {
-			await fs.writeFile(config.checkUpdateResultsFile, JSON.stringify(results));
+			// The directory is made if it is not there (/run is empty at each boot), for the service
+			// alone; mode is only applied when it is made.
+			await fs.mkdir(path.dirname(config.checkUpdateResultsFile), {recursive: true, mode: 0o700});
+			await fs.writeFile(config.checkUpdateResultsFile, JSON.stringify(results), {mode: 0o600});
 			return {returnValue: true};
 		} catch (e) {
 			log.log('Could not write checkUpdateResultsFile: ' + JSON.stringify(e));

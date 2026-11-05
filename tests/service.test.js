@@ -23,7 +23,7 @@ const feed = (manifest = SMALL, images = IMAGES, tree = 'wrynose') => ({
 	['/luneos-' + tree + '/manifest.json']: {status: 200, body: manifest},
 	['/luneos-' + tree + '/device-images.json']: {status: 200, body: images}
 });
-const RESULTS = '/tmp/checkUpdateResults.json';
+const RESULTS = '/run/org.webosports.service.update/checkUpdateResults.json';
 
 describe('the update service', () => {
 	it('registers the four methods of the old service', async () => {
@@ -69,6 +69,15 @@ describe('the update service', () => {
 		assert.equal(toasts[1].args.message, 'New version 26');
 		assert.deepEqual(toasts[1].args.onclick, {appId: 'org.webosports.app.settings.updates',
 			params: {needUpdate: true, changesSinceLast: r.changesSinceLast}});
+		env.stop();
+	});
+
+	it('checkUpdate keeps its results out of /tmp, in a directory and file for root alone', async () => {
+		const env = await boot({feed: feed()});
+		assert.equal((await env.ask('checkUpdate')).needUpdate, true);
+		assert.deepEqual(Object.keys(env.files).filter(p => p.startsWith('/tmp/')), []);
+		assert.deepEqual(env.dirs['/run/org.webosports.service.update'], {mode: 0o700});
+		assert.equal(env.modes[RESULTS], 0o600);
 		env.stop();
 	});
 

@@ -46,7 +46,7 @@ What it does
   `https://feeds.luneos.org/luneos-<tree>/manifest.json` and takes the
   highest version in its changeLog that is for this device (and not above
   the manifest's platformVersion, unless the preference says so). It writes
-  what it found to /tmp/checkUpdateResults.json, and when that is newer than
+  what it found to /run/org.webosports.service.update/checkUpdateResults.json, and when that is newer than
   the local version answers `needUpdate: true` with the changes, and shows a
   toast that opens the Settings app.
 - `downloadUpdate` (a subscriber gets the percentage done): looks up the
@@ -111,7 +111,7 @@ mend those marked fixed, one each.
 - B12 (fixed) The toast opened the Enyo Settings app with `page:
   "SystemUpdates"`, an app no image has any more. It opens the QML Settings
   app's System Updates page, `org.webosports.app.settings.updates`.
-- B13 checkUpdate writes /tmp/checkUpdateResults.json also when there is no
+- B13 checkUpdate writes /run/org.webosports.service.update/checkUpdateResults.json also when there is no
   update (with the local version). Harmless; kept.
 
 Hardening
@@ -124,6 +124,12 @@ service should. Changed, one commit each:
   that the request fails with 413 "Response too large". Its body was kept
   without limit, so a feed that went wrong, or was made to, could grow the
   service until the device ran out of memory.
+- H2 What checkUpdate found is kept in
+  /run/org.webosports.service.update/checkUpdateResults.json, in a directory
+  made 0700 and a file 0600. It was /tmp/checkUpdateResults.json: in a
+  directory anyone may write to, any user could put the file there before the
+  service did, and so choose which device and feed downloadUpdate fetches
+  for, or make it a link for root to write through.
 
 Deliberately different from the old service
 -------------------------------------------

@@ -36,8 +36,10 @@ const DEFAULTS = {
 	// initiateUpdate: start-update.sh marks the next boot as a system update and reboots.
 	rebootToUpdateModeCommand: {cmd: 'script', args: ['-q', '-c', '/usr/palm/services/org.webosports.service.update/start-update.sh', '/dev/null']},
 
-	// What checkUpdate found, for downloadUpdate.
-	checkUpdateResultsFile: '/tmp/checkUpdateResults.json',
+	// What checkUpdate found, for downloadUpdate: the device name, the version and the feed to fetch
+	// it from. Not in /tmp, where anyone could put a file there first (or a link to one) for this
+	// root service to read or write: /run is the root's, and the directory is made 0700.
+	checkUpdateResultsFile: '/run/org.webosports.service.update/checkUpdateResults.json',
 	getDeviceNameCommand: {cmd: 'nyx-cmd', args: ['DeviceInfo', 'query', '--format=json']},
 
 	// How long an HTTP GET may take (Foundations' AjaxCall gave 60 s).

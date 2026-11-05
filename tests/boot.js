@@ -22,7 +22,18 @@ const VM_RELEASE = 'Rockhopper release 1.0-wrynose-unofficial (luneos-Espressino
 const quiet = {log() {}, warn() {}, error() {}, info() {}};
 
 // fs.promises' readFile and writeFile over files = {path: content}.
-function memoryFs(files) {
+/*
+	files: {<path>: contents}. A file may only be written in a directory that
+	is there: the directories of the files given, or one mkdir made. dirs and
+	modes: {<path>: {mode}} and {<path>: mode}, what mkdir and writeFile were
+	asked for.
+*/
+function memoryFs(files, dirs = {}, modes = {}) {
+	Object.keys(files).forEach(p => {
+		for (let d = path.dirname(p); d !== path.dirname(d); d = path.dirname(d)) {
+			dirs[d] = dirs[d] || {};
+		}
+	});
 	const enoent = p => Object.assign(new Error('ENOENT: no such file or directory, open \'' + p + '\''),
 		{code: 'ENOENT', errno: -2});
 	return {
@@ -32,11 +43,23 @@ function memoryFs(files) {
 			}
 			return Buffer.from(files[p]);
 		},
-		writeFile: async (p, data) => {
-			if (p.indexOf('/nodir/') >= 0) {
+		writeFile: async (p, data, options) => {
+			if (p.indexOf('/nodir/') >= 0 || !dirs[path.dirname(p)]) {
 				throw enoent(p);
 			}
 			files[p] = String(data);
+			modes[p] = options && options.mode;
+		},
+		// Only {recursive: true}, as the service makes its directory. A path with /nodir/ cannot be made.
+		mkdir: async (p, options) => {
+			if (p.indexOf('/nodir/') >= 0) {
+				throw enoent(p);
+			}
+			for (let d = p; d !== path.dirname(d); d = path.dirname(d)) {
+				if (!dirs[d]) {
+					dirs[d] = {mode: options && options.mode};
+				}
+			}
 		}
 	};
 }
@@ -84,6 +107,7 @@ async function boot({bus = {}, release = VM_RELEASE, files = {}, commands = {}, 
 	const runs = [];
 	const requests = [];
 	const fsFiles = Object.assign({}, files);
+	const fsDirs = {}, fsModes = {};
 	if (release !== null) {
 		fsFiles['/etc/luneos-release'] = release;
 	}
@@ -152,7 +176,7 @@ async function boot({bus = {}, release = VM_RELEASE, files = {}, commands = {}, 
 		httpTimeoutMs
 	}, extra);
 	const service = start({palmbus: pb, idleMs: 0, log: quiet, exit() {}, timeoutS, config,
-		fs: memoryFs(fsFiles), spawn: fakeSpawn(Object.assign({'nyx-cmd': {out: '{"device_name": "qemux86-64"}\n'}}, commands), runs)});
+		fs: memoryFs(fsFiles, fsDirs, fsModes), spawn: fakeSpawn(Object.assign({'nyx-cmd': {out: '{"device_name": "qemux86-64"}\n'}}, commands), runs)});
 
 	async function settle(ms = 30) {
 		for (;;) {
@@ -177,7 +201,7 @@ async function boot({bus = {}, release = VM_RELEASE, files = {}, commands = {}, 
 	}
 
 	return {
-		ask, send, settle, calls, runs, requests, pb, service, files: fsFiles,
+		ask, send, settle, calls, runs, requests, pb, service, files: fsFiles, dirs: fsDirs, modes: fsModes,
 		callsTo: (name, method) => calls.filter(c => c.service === name && (!method || c.method === method)),
 		cancel: token => pb.cancel(NAME, token),
 		stop() {
