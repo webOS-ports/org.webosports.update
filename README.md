@@ -114,6 +114,17 @@ mend those marked fixed, one each.
 - B13 checkUpdate writes /tmp/checkUpdateResults.json also when there is no
   update (with the local version). Harmless; kept.
 
+Hardening
+---------
+
+The old service trusted the feed and its own files further than a root
+service should. Changed, one commit each:
+
+- H1 A reply from the feed is at most 1 MiB (lib/http.js, maxBytes): beyond
+  that the request fails with 413 "Response too large". Its body was kept
+  without limit, so a feed that went wrong, or was made to, could grow the
+  service until the device ran out of memory.
+
 Deliberately different from the old service
 -------------------------------------------
 

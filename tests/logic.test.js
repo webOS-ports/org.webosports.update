@@ -148,6 +148,38 @@ describe('the HTTP GET', () => {
 			assert.ok(Date.now() - started < 1000);
 		});
 	});
+	it('refuses a body larger than maxBytes, announced or not, and still takes one that fits', async () => {
+		await serve((req, res) => {
+			if (req.url === '/announced') {
+				res.writeHead(200, {'Content-Length': 2048});
+				res.end('x'.repeat(2048));
+			} else if (req.url === '/streamed') {
+				// No Content-Length: chunked, so only counting what comes in catches it.
+				res.writeHead(200);
+				let n = 0;
+				const more = () => {
+					if (res.destroyed || n++ > 50) {
+						res.end();
+						return;
+					}
+					res.write('y'.repeat(100));
+					setTimeout(more, 2);
+				};
+				more();
+			} else {
+				res.writeHead(200);
+				res.end(JSON.stringify({x: 'z'.repeat(900)}));
+			}
+		}, async base => {
+			const get = createHttp({maxBytes: 1024}).get;
+			await assert.rejects(get(base + '/announced'), {message: 'Response too large', errorCode: 413});
+			await assert.rejects(get(base + '/streamed'), {message: 'Response too large', errorCode: 413});
+			assert.equal((await get(base + '/fits')).responseJSON.x.length, 900);
+		});
+	});
+	it('caps a reply at 1 MiB by default', () => {
+		assert.equal(require('../service/lib/http').MAX_BYTES, 1024 * 1024);
+	});
 		it('fails as AjaxCall did: no connection, and no answer in time (504)', async () => {
 		const get = createHttp({timeoutMs: 200}).get;
 		const port = await serve(() => {}, async base => {
