@@ -15,14 +15,19 @@ const {boot, NAME, MANIFEST} = require('./boot');
 
 const AM = {service: 'com.webos.service.activitymanager'};
 const PERIODIC = 'org.webosports.service.update: Periodic Update Check';
+const BOOT = 'org.webosports.service.update: Boot Update Check';
 const SMALL = {manifestVersion: 2, platformVersion: 26, changeLog: [
 	{version: 24, changes: ['a']}, {version: 25, changes: ['b'], unsupported_devices: ['mako']}, {version: 26, changes: ['c']}]};
-const IMAGES = {'qemux86-64': {26: {url: 'http://images.example/qemux86-64-26.zip'}}};
+// What the downloadmanager stand-in "downloads": the file is there when it says it is done.
+const IMAGE_FILE = '/userdata/luneos-data/system-update.zip';
+const IMAGE_SHA256 = '6b3cf57c7b136ef3ebfab4e4a24a0fd4241f4fb43e6bedebb624375dcd3d1332'; // of "IMAGE"
+const IMAGES = {'qemux86-64': {26: {url: 'https://images.example/qemux86-64-26.zip', sha256: IMAGE_SHA256}}};
+const STORED = JSON.stringify({version: 26, deviceName: 'qemux86-64', buildTree: 'wrynose'});
 const feed = (manifest = SMALL, images = IMAGES, tree = 'wrynose') => ({
 	['/luneos-' + tree + '/manifest.json']: {status: 200, body: manifest},
 	['/luneos-' + tree + '/device-images.json']: {status: 200, body: images}
 });
-const RESULTS = '/tmp/checkUpdateResults.json';
+const RESULTS = '/run/org.webosports.service.update/checkUpdateResults.json';
 
 describe('the update service', () => {
 	it('registers the four methods of the old service', async () => {
@@ -66,8 +71,17 @@ describe('the update service', () => {
 		const toasts = env.callsTo('com.webos.notification');
 		assert.deepEqual(toasts.map(c => c.method), ['closeToast', 'createToast']);
 		assert.equal(toasts[1].args.message, 'New version 26');
-		assert.deepEqual(toasts[1].args.onclick, {appId: 'org.webosports.app.settings',
-			params: {page: 'SystemUpdates', needUpdate: true, changesSinceLast: r.changesSinceLast}});
+		assert.deepEqual(toasts[1].args.onclick, {appId: 'org.webosports.app.settings.updates',
+			params: {needUpdate: true, changesSinceLast: r.changesSinceLast}});
+		env.stop();
+	});
+
+	it('checkUpdate keeps its results out of /tmp, in a directory and file for root alone', async () => {
+		const env = await boot({feed: feed()});
+		assert.equal((await env.ask('checkUpdate')).needUpdate, true);
+		assert.deepEqual(Object.keys(env.files).filter(p => p.startsWith('/tmp/')), []);
+		assert.deepEqual(env.dirs['/run/org.webosports.service.update'], {mode: 0o700});
+		assert.equal(env.modes[RESULTS], 0o600);
 		env.stop();
 	});
 
@@ -76,7 +90,9 @@ describe('the update service', () => {
 			commands: {'nyx-cmd': {out: '{"device_name": "maguro"}'}}});
 		assert.deepEqual(await env.ask('checkUpdate'), {returnValue: true, success: true, needUpdate: false});
 		assert.deepEqual(JSON.parse(env.files[RESULTS]), {version: '23', deviceName: 'maguro', buildTree: 'stable'});
-		assert.equal(env.callsTo('com.webos.notification').length, 0);
+		// No toast, and one an earlier check left behind is closed.
+		assert.deepEqual(env.callsTo('com.webos.notification').map(c => [c.method, c.args]),
+			[['closeToast', {sourceId: 'org.webosports.service.update'}]]);
 		env.stop();
 	});
 
@@ -125,7 +141,7 @@ describe('the update service', () => {
 			{returnValue: true, ticket: 3, amountReceived: 1000, amountTotal: 1000, completed: true, completionStatusCode: 200}
 		];
 		const env = await boot({feed: feed(), bus: {'com.webos.service.downloadmanager/download': progress},
-			files: {[RESULTS]: JSON.stringify({version: 26, deviceName: 'qemux86-64', buildTree: 'wrynose'})}});
+			files: {[RESULTS]: STORED, [IMAGE_FILE]: 'IMAGE'}});
 		const r = env.send('downloadUpdate', {subscribe: true});
 		await r.first;
 		await env.settle();
@@ -133,12 +149,97 @@ describe('the update service', () => {
 			{percentage: '25.00', returnValue: true, fired: true},
 			{success: true, finished: true, error: false, msg: 'Done downloading.', returnValue: true}
 		]);
-		assert.deepEqual(env.callsTo('com.webos.service.downloadmanager')[0].args, {target: 'http://images.example/qemux86-64-26.zip',
+		assert.deepEqual(env.callsTo('com.webos.service.downloadmanager')[0].args, {target: 'https://images.example/qemux86-64-26.zip',
 			keepFilenameOnRedirect: true, targetFilename: 'system-update.zip', targetDir: '/userdata/luneos-data/', subscribe: true});
+		// The "update available" toast goes once the update is here.
+		assert.deepEqual(env.callsTo('com.webos.notification').map(c => [c.method, c.args]),
+			[['closeToast', {sourceId: 'org.webosports.service.update'}]]);
 		// The subscription stays open after the result, as mojoservice kept it, until its caller cancels it.
 		assert.equal(env.service.bus.inflight, 1);
 		env.cancel(r.token);
 		assert.equal(env.service.bus.inflight, 0);
+		env.stop();
+	});
+
+	it('downloadUpdate takes the downloadmanager\'s replies as the Sargo sends them, with no returnValue after the first', async () => {
+		// luna-send to com.webos.service.downloadmanager/download on the Sargo, 2026-11-05 (some fields left out).
+		const sargo = [
+			{url: IMAGES['qemux86-64'][26].url, returnValue: true, ticket: 8, target: IMAGE_FILE, subscribed: true},
+			{ticket: 8, amountReceived: 15, e_amountReceived: '15', amountTotal: 30, e_amountTotal: '30'},
+			{sourceUrl: IMAGES['qemux86-64'][26].url, completed: true, target: IMAGE_FILE, interrupted: false, httpStatus: 200,
+				amountTotal: 30, destPath: '/userdata/luneos-data/', aborted: false, destFile: 'system-update.zip', ticket: 8,
+				completionStatusCode: 200, amountReceived: 30}
+		];
+		const env = await boot({feed: feed(), bus: {'com.webos.service.downloadmanager/download': sargo},
+			files: {[RESULTS]: STORED, [IMAGE_FILE]: 'IMAGE'}});
+		const r = env.send('downloadUpdate', {subscribe: true});
+		await r.first;
+		await env.settle();
+		assert.deepEqual(r.replies, [
+			{percentage: '50.00', returnValue: true, fired: true},
+			{success: true, finished: true, error: false, msg: 'Done downloading.', returnValue: true}
+		]);
+		env.cancel(r.token);
+		env.stop();
+	});
+
+	it('downloadUpdate fetches only an image with an https URL and a SHA-256', async () => {
+		const entries = [
+			{url: 'http://images.example/qemux86-64-26.zip', sha256: IMAGE_SHA256},
+			{url: 'ftp://images.example/qemux86-64-26.zip', sha256: IMAGE_SHA256},
+			{url: 'https://images.example/qemux86-64-26.zip'},
+			{url: 'https://images.example/qemux86-64-26.zip', sha256: 'abc'},
+			{url: 'https://images.example/qemux86-64-26.zip', sha256: IMAGE_SHA256 + '00'},
+			{url: 'not a url', sha256: IMAGE_SHA256},
+			{sha256: IMAGE_SHA256}
+		];
+		for (const entry of entries) {
+			const env = await boot({feed: feed(SMALL, {'qemux86-64': {26: entry}}), files: {[RESULTS]: STORED, [IMAGE_FILE]: 'IMAGE'}});
+			assert.deepEqual(await env.ask('downloadUpdate'), {success: false, error: true, needCheck: false, returnValue: true,
+				msg: 'The update server gives no https URL and SHA-256 for this image; it is not downloaded.'}, JSON.stringify(entry));
+			assert.equal(env.callsTo('com.webos.service.downloadmanager').length, 0);
+			env.stop();
+		}
+	});
+
+	it('downloadUpdate takes the SHA-256 in either case', async () => {
+		const done = {returnValue: true, ticket: 3, completed: true, completionStatusCode: 200};
+		const env = await boot({feed: feed(SMALL, {'qemux86-64': {26: {url: IMAGES['qemux86-64'][26].url, sha256: IMAGE_SHA256.toUpperCase()}}}),
+			bus: {'com.webos.service.downloadmanager/download': [done]}, files: {[RESULTS]: STORED, [IMAGE_FILE]: 'IMAGE'}});
+		assert.equal((await env.ask('downloadUpdate')).success, true);
+		env.stop();
+	});
+
+	it('downloadUpdate removes a download whose SHA-256 is not the feed\'s, and says so', async () => {
+		const done = {returnValue: true, ticket: 3, completed: true, completionStatusCode: 200};
+		const env = await boot({feed: feed(), bus: {'com.webos.service.downloadmanager/download': [done]},
+			files: {[RESULTS]: STORED, [IMAGE_FILE]: 'NOT THE IMAGE'}});
+		assert.deepEqual(await env.ask('downloadUpdate'), {success: false, error: true, needCheck: false, returnValue: true,
+			msg: 'The downloaded update is not the one the update server lists (SHA-256 differs); it was removed.'});
+		assert.equal(env.files[IMAGE_FILE], undefined);
+		// There is still an update to be had, so its toast stays.
+		assert.equal(env.callsTo('com.webos.notification').length, 0);
+		env.stop();
+	});
+
+	it('downloadUpdate checks the file where the downloadmanager says it put it', async () => {
+		// It adds a number to the name when the file is there already.
+		const other = '/userdata/luneos-data/system-update(1).zip';
+		const done = {returnValue: true, ticket: 3, completed: true, completionStatusCode: 200, target: other};
+		const env = await boot({feed: feed(), bus: {'com.webos.service.downloadmanager/download': [done]},
+			files: {[RESULTS]: STORED, [IMAGE_FILE]: 'IMAGE', [other]: 'TAMPERED'}});
+		assert.equal((await env.ask('downloadUpdate')).success, false);
+		assert.equal(env.files[other], undefined);
+		assert.equal(env.files[IMAGE_FILE], 'IMAGE');
+		env.stop();
+	});
+
+	it('downloadUpdate fails when the download cannot be read back', async () => {
+		const done = {returnValue: true, ticket: 3, completed: true, completionStatusCode: 200};
+		const env = await boot({feed: feed(), bus: {'com.webos.service.downloadmanager/download': [done]}, files: {[RESULTS]: STORED}});
+		const r = await env.ask('downloadUpdate');
+		assert.equal(r.success, false);
+		assert.match(r.msg, /^Could not read the downloaded update/);
 		env.stop();
 	});
 
@@ -170,7 +271,7 @@ describe('the update service', () => {
 			files: {[RESULTS]: JSON.stringify({version: 26, deviceName: 'qemux86-64', buildTree: 'wrynose'})}});
 		const r = await env.ask('downloadUpdate');
 		assert.equal(r.msg, 'Error during download:\nluna://com.webos.service.downloadmanager/download ' +
-			'{"target":"http://images.example/qemux86-64-26.zip","keepFilenameOnRedirect":true,"targetFilename":"system-update.zip",' +
+			'{"target":"https://images.example/qemux86-64-26.zip","keepFilenameOnRedirect":true,"targetFilename":"system-update.zip",' +
 			'"targetDir":"/userdata/luneos-data/","subscribe":true}: no space\nErrorCode: 2');
 		assert.equal(r.success, false);
 		env.stop();
@@ -233,6 +334,13 @@ describe('the update service', () => {
 		assert.deepEqual(env2.callsTo('com.palm.activitymanager', 'complete')[1].args, {activityId: 7});
 		env.stop();
 		env2.stop();
+	});
+
+	it('the boot check is completed without restart, so that it runs once', async () => {
+		const env = await boot({feed: feed()});
+		await env.ask('checkUpdate', {$activity: {activityId: 4, name: BOOT, callback: {serial: 3}}}, AM);
+		assert.deepEqual(env.callsTo('com.palm.activitymanager', 'complete')[0].args, {activityId: 4, serial: 3});
+		env.stop();
 	});
 
 	it('initiateUpdate that fails says so at once (B4)', async () => {

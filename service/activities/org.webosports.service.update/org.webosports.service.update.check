@@ -21,7 +21,7 @@
             "power":         true,
             "powerDebounce": true
         },
-        "schedule": { "interval": "24h", "precise": false }
+        "schedule": { "interval": "12h", "precise": false }
     },
     "start":   true,
     "replace": true

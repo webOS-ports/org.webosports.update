@@ -28,9 +28,9 @@ const IDLE_MS = 30000;
 /*
 	start({palmbus, ...}): the service on that bus. config: values to use
 	instead of lib/config.js's (files, URLs, commands); timeoutS: a command's
-	time (60 s, as mojoservice gave); spawn and fs: stand-ins for the tests.
+	time (60 s, as mojoservice gave); spawn, fs and hashFile: stand-ins for the tests.
 */
-function start({palmbus, exit, idleMs = IDLE_MS, log = console, config: overrides, timeoutS = DEFAULT_TIMEOUT_S, spawn, fs} = {}) {
+function start({palmbus, exit, idleMs = IDLE_MS, log = console, config: overrides, timeoutS = DEFAULT_TIMEOUT_S, spawn, fs, hashFile} = {}) {
 	const bus = createBus({palmbus, name: NAME, exit, idleMs, log});
 	const palm = createPalm(bus);
 	const config = createConfig(overrides);
@@ -40,6 +40,7 @@ function start({palmbus, exit, idleMs = IDLE_MS, log = console, config: override
 		http: createHttp({timeoutMs: config.httpTimeoutMs}),
 		child: createChild({spawn, log}),
 		fs,
+		hashFile,
 		log
 	});
 	const opts = {palm, timeoutS, log};

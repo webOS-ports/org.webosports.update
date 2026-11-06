@@ -48,6 +48,19 @@ describe('parseManifest (the old tests/manifest-parsing.js)', () => {
 	});
 });
 
+describe('the feed', () => {
+	const config = createConfig();
+	// The manifest says whether to update and device-images.json where the image is: fetched in the
+	// clear, anyone on the path could offer any image as the update.
+	it('is fetched over HTTPS from feeds.luneos.org, per build tree', () => {
+		assert.equal(config.getManifestUrl('testing'), 'https://feeds.luneos.org/luneos-testing/manifest.json');
+		assert.equal(config.getDeviceImagesUrl('testing'), 'https://feeds.luneos.org/luneos-testing/device-images.json');
+	});
+	it('is the stable tree\'s when the release file names none', () => {
+		assert.equal(config.getManifestUrl(undefined), 'https://feeds.luneos.org/luneos-stable/manifest.json');
+	});
+});
+
 describe('the release file', () => {
 	const config = createConfig();
 	it('reads the VM\'s', () => {
@@ -135,6 +148,38 @@ describe('the HTTP GET', () => {
 			assert.ok(Date.now() - started < 1000);
 		});
 	});
+	it('refuses a body larger than maxBytes, announced or not, and still takes one that fits', async () => {
+		await serve((req, res) => {
+			if (req.url === '/announced') {
+				res.writeHead(200, {'Content-Length': 2048});
+				res.end('x'.repeat(2048));
+			} else if (req.url === '/streamed') {
+				// No Content-Length: chunked, so only counting what comes in catches it.
+				res.writeHead(200);
+				let n = 0;
+				const more = () => {
+					if (res.destroyed || n++ > 50) {
+						res.end();
+						return;
+					}
+					res.write('y'.repeat(100));
+					setTimeout(more, 2);
+				};
+				more();
+			} else {
+				res.writeHead(200);
+				res.end(JSON.stringify({x: 'z'.repeat(900)}));
+			}
+		}, async base => {
+			const get = createHttp({maxBytes: 1024}).get;
+			await assert.rejects(get(base + '/announced'), {message: 'Response too large', errorCode: 413});
+			await assert.rejects(get(base + '/streamed'), {message: 'Response too large', errorCode: 413});
+			assert.equal((await get(base + '/fits')).responseJSON.x.length, 900);
+		});
+	});
+	it('caps a reply at 1 MiB by default', () => {
+		assert.equal(require('../service/lib/http').MAX_BYTES, 1024 * 1024);
+	});
 		it('fails as AjaxCall did: no connection, and no answer in time (504)', async () => {
 		const get = createHttp({timeoutMs: 200}).get;
 		const port = await serve(() => {}, async base => {
@@ -143,5 +188,17 @@ describe('the HTTP GET', () => {
 		});
 		await assert.rejects(get('http://127.0.0.1:' + port + '/x'),
 			e => /^httpRequest error connect ECONNREFUSED/.test(e.message) && e.errorCode === -111);
+	});
+});
+
+describe('the image hash', () => {
+	const {sha256File} = require('../service/lib/update');
+	it('is the SHA-256 of the whole file, in lower-case hex', async () => {
+		const file = require('path').join(__dirname, 'manifest.json');
+		const want = require('crypto').createHash('sha256').update(require('fs').readFileSync(file)).digest('hex');
+		assert.equal(await sha256File(file), want);
+	});
+	it('fails on a file that is not there', async () => {
+		await assert.rejects(sha256File(require('path').join(__dirname, 'no-such-file')), {code: 'ENOENT'});
 	});
 });

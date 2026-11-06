@@ -25,7 +25,8 @@ Layout
   - `lib/http.js` (the feed), `lib/child.js` (nyx-cmd, script),
     `lib/config.js` (the old config.js values);
   - `start-update.sh`, `run-update.sh`, `download-updates.sh`: unchanged;
-  - `activities/`: the periodic check, installed in /etc/palm/activities.
+  - `activities/`: the checks after boot and every 12 hours, installed in
+    /etc/palm/activities.
 - `files/sysbus/`: the ACG files, unchanged.
 - `tests/`: unit tests (`node --test tests/*.test.js`), `run.sh` (the tests,
   then `static-analysis.sh`: jshint, shellcheck, a parse of every module).
@@ -42,20 +43,25 @@ What it does
 - `checkUpdate`: asks connectionmanager whether the internet is there, reads
   the systemservice preference `updateIgnorePlatformVersion`, the release
   file and the device name (`nyx-cmd DeviceInfo query`), fetches
-  `http://build.webos-ports.org/luneos-<tree>/manifest.json` and takes the
+  `https://feeds.luneos.org/luneos-<tree>/manifest.json` and takes the
   highest version in its changeLog that is for this device (and not above
   the manifest's platformVersion, unless the preference says so). It writes
-  what it found to /tmp/checkUpdateResults.json, and when that is newer than
+  what it found to /run/org.webosports.service.update/checkUpdateResults.json, and when that is newer than
   the local version answers `needUpdate: true` with the changes, and shows a
   toast that opens the Settings app.
 - `downloadUpdate` (a subscriber gets the percentage done): looks up the
-  image for that device and version in the feed's device-images.json and has
-  downloadmanager fetch it to /userdata/luneos-data/system-update.zip.
+  image for that device and version in the feed's device-images.json
+  (`{"<device>": {"<version>": {"url": "https://...", "sha256": "<hex>"}}}`),
+  has downloadmanager fetch it to /userdata/luneos-data/system-update.zip and
+  checks its SHA-256 (H3).
 - `initiateUpdate`: runs start-update.sh (through `script`), which marks the
   next boot as a system update and reboots; run-update.sh does the update in
   that boot.
-- The daily check: activitymanager calls `checkUpdate` (the activity in
-  `service/activities/`, which configurator creates).
+- The checks: activitymanager calls `checkUpdate` once after each boot, as
+  soon as the internet is up, and every 12 hours (the two activities in
+  `service/activities/`, which configurator creates at every boot). The
+  periodic one is restarted after each run; the boot one is not persistent
+  and is completed without restart, so it runs once per boot.
 
 The old service's bugs
 ----------------------
@@ -104,10 +110,44 @@ mend those marked fixed, one each.
   a string ("1.0") and compares with a number as a number, but two strings
   ("10" and "9") compare as text. The feed's manifest has numbers, as far as
   tests/manifest.json shows; kept.
-- B12 The toast opens the Settings app with `page: "SystemUpdates"`; the QML
-  Settings app has no such page. Not this service's to change.
-- B13 checkUpdate writes /tmp/checkUpdateResults.json also when there is no
+- B12 (fixed) The toast opened the Enyo Settings app with `page:
+  "SystemUpdates"`, an app no image has any more. It opens the QML Settings
+  app's System Updates page, `org.webosports.app.settings.updates`.
+- B13 checkUpdate writes /run/org.webosports.service.update/checkUpdateResults.json also when there is no
   update (with the local version). Harmless; kept.
+
+Hardening
+---------
+
+The old service trusted the feed and its own files further than a root
+service should. Changed, one commit each:
+
+- H1 A reply from the feed is at most 1 MiB (lib/http.js, maxBytes): beyond
+  that the request fails with 413 "Response too large". Its body was kept
+  without limit, so a feed that went wrong, or was made to, could grow the
+  service until the device ran out of memory.
+- H2 What checkUpdate found is kept in
+  /run/org.webosports.service.update/checkUpdateResults.json, in a directory
+  made 0700 and a file 0600. It was /tmp/checkUpdateResults.json: in a
+  directory anyone may write to, any user could put the file there before the
+  service did, and so choose which device and feed downloadUpdate fetches
+  for, or make it a link for root to write through.
+- H3 downloadUpdate fetches an image only when its device-images.json entry
+  has an https `url` and a `sha256` (64 hex digits), and holds the file to
+  that hash once it is down; one that differs is removed, and the answer says
+  so. The entry was `{url}` alone, of any scheme the downloadmanager takes
+  (http, ftp), and the downloadmanager follows redirects, to http too:
+  whoever could answer for the image's host chose what the device installed.
+  The hash ties the image to device-images.json, which comes over https from
+  the feed.
+- H4 The service's group, update-service.operation, needs oem trust: the
+  Settings app's pages, activitymanager and the system's services. It was
+  "dev", the lowest, which any app or service given the group has, signed or
+  not, and the group lets a caller reboot the device into an update.
+
+The feed itself, the manifest and device-images.json are not signed yet:
+whoever can write to the feed's bucket decides what devices install. That
+is the next step, with the key held by the CI that builds the feed.
 
 Deliberately different from the old service
 -------------------------------------------

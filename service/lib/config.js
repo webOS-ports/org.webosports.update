@@ -8,12 +8,13 @@
 
 /*
 	Where the service finds things: the values of the old javascript/config.js,
-	unchanged. createConfig(overrides) gives a copy with some of them changed
-	(the tests point the files, URLs and commands somewhere else).
+	except the feed, which moved from http://build.webos-ports.org (gone) to
+	https://feeds.luneos.org. createConfig(overrides) gives a copy with some of
+	them changed (the tests point the files, URLs and commands somewhere else).
 */
 
 const DEFAULTS = {
-	manifestUrlTemplate: 'http://build.webos-ports.org/luneos-%%BUILDTREE%%/manifest.json',
+	manifestUrlTemplate: 'https://feeds.luneos.org/luneos-%%BUILDTREE%%/manifest.json',
 	versionFile: '/etc/luneos-release',
 	// /etc/luneos-release reads
 	// ${BUILD_DISTRIB_ID} release ${DISTRO_VERSION}-${BUILD_TREE}-${WEBOS_DISTRO_BUILD_ID} (${WEBOS_DISTRO_RELEASE_CODENAME})
@@ -30,13 +31,15 @@ const DEFAULTS = {
 	downloadPath: '/userdata/luneos-data/',
 	downloadFilename: 'system-update.zip',
 	// A JSON object {<device name>: {<version>: {url}}}.
-	deviceImagesUrlTemplate: 'http://build.webos-ports.org/luneos-%%BUILDTREE%%/device-images.json',
+	deviceImagesUrlTemplate: 'https://feeds.luneos.org/luneos-%%BUILDTREE%%/device-images.json',
 
 	// initiateUpdate: start-update.sh marks the next boot as a system update and reboots.
 	rebootToUpdateModeCommand: {cmd: 'script', args: ['-q', '-c', '/usr/palm/services/org.webosports.service.update/start-update.sh', '/dev/null']},
 
-	// What checkUpdate found, for downloadUpdate.
-	checkUpdateResultsFile: '/tmp/checkUpdateResults.json',
+	// What checkUpdate found, for downloadUpdate: the device name, the version and the feed to fetch
+	// it from. Not in /tmp, where anyone could put a file there first (or a link to one) for this
+	// root service to read or write: /run is the root's, and the directory is made 0700.
+	checkUpdateResultsFile: '/run/org.webosports.service.update/checkUpdateResults.json',
 	getDeviceNameCommand: {cmd: 'nyx-cmd', args: ['DeviceInfo', 'query', '--format=json']},
 
 	// How long an HTTP GET may take (Foundations' AjaxCall gave 60 s).

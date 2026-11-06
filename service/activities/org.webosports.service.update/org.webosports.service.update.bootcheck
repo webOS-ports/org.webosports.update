@@ -1,0 +1,26 @@
+{
+    "activity": {
+        "name": "org.webosports.service.update: Boot Update Check",
+        "description": "System update check once after boot",
+        "callback": {
+            "method": "luna://org.webosports.service.update/checkUpdate",
+            "params": {}
+        },
+        "requirements" : {
+            "internet" : true
+        },
+        "type": {
+            "background" :   true,
+            "userInitiated": false,
+            "pausable":      true,
+            "cancellable":   true,
+            "persist":       false,
+            "explicit":      true,
+            "continuous":    false,
+            "power":         true,
+            "powerDebounce": true
+        }
+    },
+    "start":   true,
+    "replace": true
+}

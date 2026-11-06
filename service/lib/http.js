@@ -16,14 +16,20 @@
 	- "httpRequest error <message>" (or httpResponse), errorCode the node
 	  error's errno (-1 when none): no connection, a reset;
 	- "Timeout received from ajaxCall ", 504: no end of the answer within
-	  timeoutMs.
+	  timeoutMs;
+	- "Response too large", 413: more than maxBytes of body. The service only
+	  fetches the feed's small JSON files; a feed that went wrong, or was made
+	  to, could otherwise send it a body until it ran out of memory.
 */
 
 const http = require('http');
 const https = require('https');
 const {err} = require('./mojo');
 
-function createHttp({timeoutMs = 60000} = {}) {
+// Far above what manifest.json and device-images.json will grow to.
+const MAX_BYTES = 1024 * 1024;
+
+function createHttp({timeoutMs = 60000, maxBytes = MAX_BYTES} = {}) {
 	function get(url) {
 		return new Promise((resolve, reject) => {
 			let settled = false, response = null;
@@ -76,7 +82,18 @@ function createHttp({timeoutMs = 60000} = {}) {
 				// The body is decoded once it is all there. AjaxCall decoded each chunk by itself, so a
 				// character cut between two chunks came out as U+FFFD (README.md, B9).
 				const chunks = [];
+				let received = 0;
+				const tooLarge = () => {
+					finish(reject, err(413, 'Response too large'));
+					res.removeAllListeners();
+					res.destroy();
+				};
 				res.on('data', chunk => {
+					received += chunk.length;
+					if (received > maxBytes) {
+						tooLarge();
+						return;
+					}
 					chunks.push(chunk);
 				});
 				res.on('error', e => {
@@ -101,4 +118,4 @@ function createHttp({timeoutMs = 60000} = {}) {
 	return {get};
 }
 
-module.exports = {createHttp};
+module.exports = {createHttp, MAX_BYTES};
