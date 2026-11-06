@@ -296,12 +296,19 @@ function createUpdate({palm, config, http, child, fs = fsp, hashFile = sha256Fil
 			notify(remoteVersion, changesSinceLast);
 			return {returnValue: true, success: true, needUpdate: true, changesSinceLast};
 		}
+		// A toast from an earlier check offers what is now installed, or what the feed no longer has.
+		closeToast();
 		return {returnValue: true, success: true, needUpdate: false};
+	}
+
+	// The toast is this service's alone, so its sourceId closes it; that there is none is no failure.
+	function closeToast() {
+		return palm.call(NOTIFICATION, 'closeToast', {sourceId: SERVICE}).catch(() => {});
 	}
 
 	// The toast, after the answer: closeToast (whatever it answers), then createToast.
 	function notify(remoteVersion, changesSinceLast) {
-		palm.call(NOTIFICATION, 'closeToast', {sourceId: SERVICE}).catch(() => {}).then(() => {
+		closeToast().then(() => {
 			return palm.call(NOTIFICATION, 'createToast', {
 				sourceId: SERVICE,
 				onclick: {appId: SETTINGS_APP, params: {needUpdate: true, changesSinceLast}},
@@ -433,6 +440,8 @@ function createUpdate({palm, config, http, child, fs = fsp, hashFile = sha256Fil
 				}
 				return fail('The downloaded update is not the one the update server lists (SHA-256 differs); it was removed.');
 			}
+			// The toast said an update can be had; it is here now, and Settings says so.
+			closeToast();
 			return {success: true, finished: true, error: false, msg: 'Done downloading.'};
 		}
 		return fail('Error during download', r.exception);

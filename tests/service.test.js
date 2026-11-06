@@ -90,7 +90,9 @@ describe('the update service', () => {
 			commands: {'nyx-cmd': {out: '{"device_name": "maguro"}'}}});
 		assert.deepEqual(await env.ask('checkUpdate'), {returnValue: true, success: true, needUpdate: false});
 		assert.deepEqual(JSON.parse(env.files[RESULTS]), {version: '23', deviceName: 'maguro', buildTree: 'stable'});
-		assert.equal(env.callsTo('com.webos.notification').length, 0);
+		// No toast, and one an earlier check left behind is closed.
+		assert.deepEqual(env.callsTo('com.webos.notification').map(c => [c.method, c.args]),
+			[['closeToast', {sourceId: 'org.webosports.service.update'}]]);
 		env.stop();
 	});
 
@@ -149,6 +151,9 @@ describe('the update service', () => {
 		]);
 		assert.deepEqual(env.callsTo('com.webos.service.downloadmanager')[0].args, {target: 'https://images.example/qemux86-64-26.zip',
 			keepFilenameOnRedirect: true, targetFilename: 'system-update.zip', targetDir: '/userdata/luneos-data/', subscribe: true});
+		// The "update available" toast goes once the update is here.
+		assert.deepEqual(env.callsTo('com.webos.notification').map(c => [c.method, c.args]),
+			[['closeToast', {sourceId: 'org.webosports.service.update'}]]);
 		// The subscription stays open after the result, as mojoservice kept it, until its caller cancels it.
 		assert.equal(env.service.bus.inflight, 1);
 		env.cancel(r.token);
@@ -212,6 +217,8 @@ describe('the update service', () => {
 		assert.deepEqual(await env.ask('downloadUpdate'), {success: false, error: true, needCheck: false, returnValue: true,
 			msg: 'The downloaded update is not the one the update server lists (SHA-256 differs); it was removed.'});
 		assert.equal(env.files[IMAGE_FILE], undefined);
+		// There is still an update to be had, so its toast stays.
+		assert.equal(env.callsTo('com.webos.notification').length, 0);
 		env.stop();
 	});
 
