@@ -76,6 +76,17 @@ describe('the update service', () => {
 		env.stop();
 	});
 
+	it('checkUpdate during First Use answers as ever but shows no toast, which would open Settings over it', async () => {
+		const env = await boot({feed: feed(), firstUseDone: false});
+		const r = await env.ask('checkUpdate', {}, {appId: 'org.webosports.app.firstuse'});
+		assert.equal(r.needUpdate, true);
+		assert.equal(r.changesSinceLast.length, 3);
+		assert.deepEqual(JSON.parse(env.files[RESULTS]), {version: 26, deviceName: 'qemux86-64', buildTree: 'wrynose'},
+			'downloadUpdate needs what was found');
+		assert.deepEqual(env.callsTo('com.webos.notification').map(c => c.method), []);
+		env.stop();
+	});
+
 	it('checkUpdate keeps its results out of /tmp, in a directory and file for root alone', async () => {
 		const env = await boot({feed: feed()});
 		assert.equal((await env.ask('checkUpdate')).needUpdate, true);

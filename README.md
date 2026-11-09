@@ -48,7 +48,10 @@ What it does
   the manifest's platformVersion, unless the preference says so). It writes
   what it found to /run/org.webosports.service.update/checkUpdateResults.json, and when that is newer than
   the local version answers `needUpdate: true` with the changes, and shows a
-  toast that opens the Settings app.
+  toast that opens the Settings app. Not while First Use is running (no
+  /var/luna/preferences/ran-firstuse yet): a tap on the toast would open
+  Settings over it, and First Use checks for updates itself. The answer and
+  the results file are the same either way.
 - `downloadUpdate` (a subscriber gets the percentage done): looks up the
   image for that device and version in the feed's device-images.json
   (`{"<device>": {"<version>": {"url": "https://...", "sha256": "<hex>"}}}`),

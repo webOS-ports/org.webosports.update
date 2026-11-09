@@ -111,7 +111,7 @@ const MANIFEST = require('./manifest.json');
 	feed: {<path>: {status, body} | {hang: true} | {chunks: [Buffer...]}}.
 */
 async function boot({bus = {}, release = VM_RELEASE, files = {}, commands = {}, feed = {}, timeoutS = 2, httpTimeoutMs = 1000,
-	config: extra = {}} = {}) {
+	config: extra = {}, firstUseDone = true} = {}) {
 	const calls = [];
 	const runs = [];
 	const requests = [];
@@ -119,6 +119,10 @@ async function boot({bus = {}, release = VM_RELEASE, files = {}, commands = {}, 
 	const fsDirs = {}, fsModes = {};
 	if (release !== null) {
 		fsFiles['/etc/luneos-release'] = release;
+	}
+	// First Use is done unless a test says otherwise (firstUseDone: false).
+	if (firstUseDone) {
+		fsFiles['/var/luna/preferences/ran-firstuse'] = '';
 	}
 	const replies = Object.assign({
 		'com.webos.service.connectionmanager/getStatus': {returnValue: true, isInternetConnectionAvailable: true},
