@@ -293,12 +293,27 @@ function createUpdate({palm, config, http, child, fs = fsp, hashFile = sha256Fil
 
 		log.log('Remote version came back: ' + remoteVersion);
 		if (remoteVersion > localVer) {
-			notify(remoteVersion, changesSinceLast);
+			if (await inFirstUse()) {
+				log.log('First Use has not finished: no toast.');
+			} else {
+				notify(remoteVersion, changesSinceLast);
+			}
 			return {returnValue: true, success: true, needUpdate: true, changesSinceLast};
 		}
 		// A toast from an earlier check offers what is now installed, or what the feed no longer has.
 		closeToast();
 		return {returnValue: true, success: true, needUpdate: false};
+	}
+
+	// First Use has not finished while its marker is missing. A marker that cannot be read for another
+	// reason counts as done: the toast is then shown, as before.
+	async function inFirstUse() {
+		try {
+			await fs.readFile(config.firstUseDoneFile);
+			return false;
+		} catch (e) {
+			return Boolean(e && e.code === 'ENOENT');
+		}
 	}
 
 	// The toast is this service's alone, so its sourceId closes it; that there is none is no failure.

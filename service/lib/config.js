@@ -42,6 +42,11 @@ const DEFAULTS = {
 	checkUpdateResultsFile: '/run/org.webosports.service.update/checkUpdateResults.json',
 	getDeviceNameCommand: {cmd: 'nyx-cmd', args: ['DeviceInfo', 'query', '--format=json']},
 
+	// There once First Use is done (the First Use plugin writes it, luna-appmanager reads it). Until
+	// then checkUpdate shows no toast: one tapped would open Settings over First Use, and First Use
+	// checks for updates itself.
+	firstUseDoneFile: '/var/luna/preferences/ran-firstuse',
+
 	// How long an HTTP GET may take (Foundations' AjaxCall gave 60 s).
 	httpTimeoutMs: 60000
 };
